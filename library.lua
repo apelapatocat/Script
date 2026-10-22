@@ -26160,6 +26160,8 @@ return Runtime
 end function __DARKLUA_BUNDLE_MODULES.u()
 return function(options)
     local config = table.clone(options or {})
+    config.Title = config.Title or config.Name
+    config.Icon = config.Icon or config.Logo
     local defaults = {
         Title = "VibeUI",
         Author = "",
@@ -26183,6 +26185,7 @@ return function(options)
     for key, value in pairs(defaults) do
         if config[key] == nil then config[key] = value end
     end
+    config.Name = config.Name or config.Title
     if config.OpenButton == nil then
         config.OpenButton = {
             Title = config.Title,
@@ -33365,7 +33368,9 @@ function Element:New(Config)
     local gap = math.max(0, tonumber(Config.Gap) or 8)
     local buttonHeight = math.max(32, tonumber(Config.ButtonHeight) or (Creator.MobileMode and 40 or 34))
     local fullWidthButtons = Config.ButtonsFullWidth == true
+    local bottomButtons = not fullWidthButtons and Config.ButtonsAlignment == "Bottom"
     local buttonTopPadding = math.max(0, tonumber(Config.ButtonTopPadding) or 0)
+    local actionWidthOffset = fullWidthButtons and -padding * 2 or 0
     local connections, buttonConnections, buttonRecords = {}, {}, {}
     local disposed = false
     local imageFrame
@@ -33443,7 +33448,8 @@ function Element:New(Config)
         Visible = false,
         Size = UDim2.new(1, fullWidthButtons and -padding * 2 or 0, 0, buttonHeight),
         LayoutOrder = 4,
-        Parent = fullWidthButtons and Main or content,
+        AnchorPoint = bottomButtons and Vector2.new(0, 1) or Vector2.zero,
+        Parent = (fullWidthButtons or bottomButtons) and Main or content,
     })
     Header.UIElements.ButtonsContainer = actions
     Header.UIElements.Buttons = {}
@@ -33458,8 +33464,10 @@ function Element:New(Config)
         end
         local x, y = 0, buttonTopPadding
         for _, record in ipairs(buttonRecords) do
-            local measured = record.Label.TextBounds.X / scale() + 28
-            local desired = record.Config.FullWidth and width or math.min(width, math.max(96, tonumber(record.Config.Width) or measured))
+            local measured = record.Measure.TextBounds.X / scale() + 28
+            local widthScale = tonumber(record.Config.WidthScale)
+            local desired = widthScale and width * math.clamp(widthScale, 0, 1)
+                or (record.Config.FullWidth and width or math.min(width, math.max(96, tonumber(record.Config.Width) or measured)))
             if x > 0 and x + desired > width then
                 x = 0
                 y = y + buttonHeight + gap
@@ -33468,7 +33476,7 @@ function Element:New(Config)
             record.Button.Size = UDim2.fromOffset(desired, buttonHeight)
             x = x + desired + gap
         end
-        local size = UDim2.new(1, fullWidthButtons and -padding * 2 or 0, 0, y + buttonHeight)
+        local size = UDim2.new(1, actionWidthOffset, 0, y + buttonHeight)
         if actions.Size ~= size then
             actions.Size = size
         end
@@ -33479,13 +33487,30 @@ function Element:New(Config)
         end
         local width = Main.AbsoluteSize.X / scale()
         local imageSize = imageFrame and math.min(Header.ImageSize, math.max(64, width * 0.34)) or 0
+        local minimumTextWidth = 0
+        for _, record in ipairs(buttonRecords) do
+            local ratio = tonumber(record.Config.WidthScale)
+            if ratio and ratio > 0 then
+                minimumTextWidth = math.max(minimumTextWidth, (record.Measure.TextBounds.X / scale() + 24) / math.min(ratio, 1))
+            end
+        end
+        if imageSize > 0 and not fullWidthButtons then
+            imageSize = math.min(imageSize, math.max(64, width - padding * 3 - minimumTextWidth))
+        end
         local reserve = imageSize > 0 and imageSize + padding or 0
         local widthOffset = -padding * 2 - reserve
         if content.Size.X.Scale ~= 1 or content.Size.X.Offset ~= widthOffset then
             content.Size = UDim2.new(1, widthOffset, content.Size.Y.Scale, content.Size.Y.Offset)
         end
+        if bottomButtons then
+            actionWidthOffset = widthOffset
+            local actionSize = UDim2.new(1, widthOffset, 0, actions.Size.Y.Offset)
+            if actions.Size ~= actionSize then actions.Size = actionSize end
+            actions.Position = UDim2.new(0, padding, 1, -padding)
+        end
         layoutButtons()
-        local infoHeight = math.max(layout.AbsoluteContentSize.Y / scale(), imageSize)
+        local bottomActionHeight = bottomButtons and actions.Visible and (gap + actions.Size.Y.Offset) or 0
+        local infoHeight = math.max(layout.AbsoluteContentSize.Y / scale() + bottomActionHeight, imageSize)
         local actionHeight = fullWidthButtons and actions.Visible and (gap + actions.Size.Y.Offset) or 0
         if fullWidthButtons then actions.Position = UDim2.fromOffset(padding, padding + infoHeight + gap) end
         if imageFrame then
@@ -33580,7 +33605,18 @@ function Element:New(Config)
                     ThemeTag = not Text.Color(item.TextColor) and { TextColor3 = "HeaderButtonText" } or nil,
                     Parent = button,
                 })
-                table.insert(buttonRecords, { Button = button, Label = buttonLabel, Config = item })
+                local measure = New("TextLabel", {
+                    Name = "TextMeasure",
+                    Text = tostring(item.Title or "Button"),
+                    TextSize = Config.ButtonTextSize or 14,
+                    FontFace = Font.new(Creator.Font, Enum.FontWeight.Medium),
+                    TextWrapped = false,
+                    TextTransparency = 1,
+                    BackgroundTransparency = 1,
+                    Size = UDim2.fromOffset(10000, 100),
+                    Parent = button,
+                })
+                table.insert(buttonRecords, { Button = button, Label = buttonLabel, Measure = measure, Config = item })
                 table.insert(Header.UIElements.Buttons, button)
                 connect(button.Activated, function()
                     if not Header.Locked and item.Locked ~= true then
@@ -33588,8 +33624,8 @@ function Element:New(Config)
                     end
                 end, buttonConnections)
                 connect(
-                    buttonLabel:GetPropertyChangedSignal("TextBounds"),
-                    layoutButtons,
+                    measure:GetPropertyChangedSignal("TextBounds"),
+                    relayout,
                     buttonConnections
                 )
             end
@@ -33704,6 +33740,8 @@ function Element:New(Config)
         math.max(44, tonumber(Config.CardHeight) or (Creator.MobileMode and 72 or 64))
     local columns = math.max(1, math.floor(tonumber(Config.Columns) or 2))
     local minWidth = math.max(80, tonumber(Config.MinCardWidth) or 180)
+    local borderTransparency = math.clamp(tonumber(Config.BorderTransparency) or 0.25, 0, 1)
+    local borderThickness = math.max(0, tonumber(Config.BorderThickness) or 1)
     local disposed = false
     local connections, itemConnections, records = {}, {}, {}
     local relayout
@@ -33843,8 +33881,9 @@ function Element:New(Config)
                 local outline = New(
                     "UIStroke",
                     {
-                        Thickness = 1,
-                        Transparency = 0.65,
+                        ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
+                        Thickness = borderThickness,
+                        Transparency = borderTransparency,
                         ThemeTag = { Color = "HeaderOutline" },
                         Parent = button,
                     }
@@ -33969,7 +34008,7 @@ function Element:New(Config)
                 return
             end
             for _, record in ipairs(records) do
-                Creator.Tween(record.Outline, 0.2, { Transparency = 0.65 }):Play()
+                Creator.Tween(record.Outline, 0.2, { Transparency = borderTransparency }):Play()
             end
         end)
     end
@@ -34130,9 +34169,26 @@ return {
 end function __DARKLUA_BUNDLE_MODULES.aj()
 local HttpService = game:GetService("HttpService")
 local Storage = __DARKLUA_BUNDLE_MODULES.load('i')
+local Text = __DARKLUA_BUNDLE_MODULES.load('a')
+
+local defaultColors = { Added = "#55DD88", Removed = "#FF5555", Improved = "#FFD166" }
+local markers = { ["[+]"] = "Added", ["[-]"] = "Removed", ["[/]"] = "Improved" }
+
+local function validateColors(colors)
+    assert(colors == nil or type(colors) == "table", "Colors must be a table")
+    local result = {}
+    for key, value in pairs(colors or {}) do
+        if defaultColors[key] then
+            local color = assert(Text.Color(value), "Invalid " .. key .. " color; use a name, #RGB or #RRGGBB")
+            result[key] = "#" .. color:ToHex()
+        end
+    end
+    return result
+end
 
 local function validate(data)
     assert(type(data) == "table", "Expected a JSON array or an object with Updates")
+    local colors = validateColors(data.Colors)
     data = data.Updates or data
     assert(type(data) == "table" and #data > 0 and #data <= 100, "Expected 1–100 releases")
     local entries = {}
@@ -34146,12 +34202,12 @@ local function validate(data)
         end
         table.insert(entries, { Version = entry.Version, Title = entry.Title, Changes = changes, TitleColor = entry.TitleColor, DescColor = entry.DescColor })
     end
-    return entries
+    return entries, colors
 end
 
 return function(tab, window, options)
     options = options or {}
-    local controller = { Source = options.Source or options.Url, Entries = {}, Status = "idle", Error = nil }
+    local controller = { Source = options.Source or options.Url or window.Updates, Entries = {}, Colors = {}, Status = "idle", Error = nil }
     local elements = {}
     local generation = 0
     local disposed = false
@@ -34172,7 +34228,7 @@ return function(tab, window, options)
         message("Release notes", "Loading updates…")
         task.spawn(function()
             local isUrl = type(target) == "string"
-            local ok, entries = pcall(function()
+            local ok, entries, feedColors = pcall(function()
                 if isUrl then
                     assert(target:match("^https?://"), "Use an HTTP(S) URL serving JSON")
                     return validate(HttpService:JSONDecode(game:HttpGet(target)))
@@ -34184,8 +34240,8 @@ return function(tab, window, options)
             if not ok and isUrl then
                 local saved = Storage.ReadJSON(cachePath)
                 if saved and saved.Source == target then
-                    local valid, data = pcall(validate, saved.Updates)
-                    if valid then entries, cached = data, true end
+                    local valid, data, colors = pcall(validate, { Updates = saved.Updates, Colors = saved.Colors })
+                    if valid then entries, feedColors, cached = data, colors, true end
                 end
             end
             if not ok and not cached then
@@ -34194,21 +34250,36 @@ return function(tab, window, options)
                 if options.OnError then pcall(options.OnError, self.Error) end
                 return
             end
+            local colors = table.clone(defaultColors)
+            local colorsOk, colorError = pcall(function()
+                for _, source in ipairs({ feedColors, window.UpdateColors or {}, options.Colors or {} }) do
+                    for key, value in pairs(validateColors(source)) do colors[key] = value end
+                end
+            end)
+            if not colorsOk then
+                self.Status, self.Error = "error", tostring(colorError)
+                message("Invalid update colors", "Use Added, Removed and Improved with valid color names or hex codes.")
+                if options.OnError then pcall(options.OnError, self.Error) end
+                return
+            end
             for _, element in ipairs(elements) do element:Destroy() end
             table.clear(elements)
             for _, entry in ipairs(entries) do
                 local lines = {}
-                for _, change in ipairs(entry.Changes) do table.insert(lines, "• " .. change) end
+                for _, change in ipairs(entry.Changes) do
+                    local marker, body = change:match("^%s*(%[[+/%-]%])%s*(.*)$")
+                    table.insert(lines, marker and (Text.Colored(marker, colors[markers[marker] ]) .. " " .. body) or ("• " .. change))
+                end
                 table.insert(elements, tab:Paragraph({
                     Title = "v" .. entry.Version .. "  /  " .. entry.Title,
                     Desc = table.concat(lines, "\n"),
                     TitleColor = entry.TitleColor, DescColor = entry.DescColor,
                 }))
             end
-            self.Entries, self.Status = entries, cached and "cached" or "ready"
+            self.Entries, self.Colors, self.Status = entries, colors, cached and "cached" or "ready"
             if cached then message("Saved release notes", "The feed is unavailable. Showing the last saved copy.")
             else status.ElementFrame.Visible = false end
-            if ok and isUrl then Storage.WriteJSON(cachePath, { Source = target, Updates = entries }) end
+            if ok and isUrl then Storage.WriteJSON(cachePath, { Source = target, Updates = entries, Colors = feedColors }) end
             if options.OnLoaded then pcall(options.OnLoaded, entries, self.Status) end
         end)
     end
@@ -35473,6 +35544,14 @@ local Notified = false
 return function(Config)
     local Window = {
         Title = Config.Title or "UI Library",
+        Name = Config.Name,
+        Version = Config.Version,
+        Rank = Config.Rank,
+        Discord = Config.Discord,
+        FeedbackUrl = Config.FeedbackUrl,
+        Logo = Config.Logo,
+        Updates = Config.Updates,
+        UpdateColors = Config.UpdateColors,
         Author = Config.Author,
         Icon = Config.Icon,
         IconSize = Config.IconSize or 22,
@@ -37401,7 +37480,7 @@ return function(window, tab, options)
         local seconds = math.floor(os.clock() - started)
         local uptime = string.format("%02d:%02d:%02d", math.floor(seconds / 3600), math.floor(seconds / 60) % 60, seconds % 60)
         local ok, ping = pcall(function() return Stats.Network.ServerStatsItem["Data Ping"]:GetValue() end)
-        paragraph:SetDesc("Game: " .. gameName .. "\nRank: " .. tostring(options.Rank or "Member") .. "\nFPS: " .. string.format("%.1f", fps) .. "\nPing: " .. (ok and string.format("%.1f ms", ping) or "Unavailable") .. "\nSession: " .. uptime)
+        paragraph:SetDesc("Game: " .. gameName .. "\nRank: " .. tostring(options.Rank or window.Rank or "Member") .. "\nFPS: " .. string.format("%.1f", fps) .. "\nPing: " .. (ok and string.format("%.1f ms", ping) or "Unavailable") .. "\nSession: " .. uptime)
     end
     update()
     Creator.AddSignal(RunService.RenderStepped, function(dt)
@@ -37488,7 +37567,7 @@ return function(window, tab, options)
     function controller:Submit()
         if self.Busy or window.Destroyed then return false end
         local text = self.Message.UIElements.TextBox.Text:match("^%s*(.-)%s*$")
-        local url = options.Url or ""
+        local url = options.Url or window.FeedbackUrl or ""
         if text == "" then notify("Feedback", "Write your feedback first."); return false end
         if (utf8.len(text) or #text) > 4000 then notify("Feedback", "Keep your feedback under 4,000 characters."); return false end
         if type(url) ~= "string" or not url:match("^https?://") then

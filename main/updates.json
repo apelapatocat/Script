@@ -1,0 +1,145 @@
+{
+    "Colors": {
+        "Added": "#55DD88",
+        "Removed": "#FF5555",
+        "Improved": "#FFD166"
+    },
+    "Updates": [
+        {
+            "Version": "2.4.0",
+            "Title": "Ultimate Script Suite & Engine Overhaul",
+            "Changes": [
+                "[+] Added full multi-executor support for mobile and PC",
+                "[+] Added real-time script status checker",
+                "[+] Added custom key system bypass engine",
+                "[+] Added Lunor V3 dedicated tab",
+                "[+] Added SpeedXhub premium auto-loader",
+                "[+] Added H4xscripts advanced toggle panel",
+                "[+] Added built-in script dumper and inspector",
+                "[+] Added automated cloud sync for saved scripts",
+                "[+] Added custom RPC status customization",
+                "[-] Removed obsolete injection hooks",
+                "[-] Removed high-memory logging system",
+                "[/] Improved overall bytecode execution speeds",
+                "[/] Improved UI responsiveness on mobile screens"
+            ]
+        },
+        {
+            "Version": "2.3.2",
+            "Title": "Security & Stability Hotfix",
+            "Changes": [
+                "[+] Added fail-safe fallback scripts",
+                "[+] Added silent error logging",
+                "[-] Removed vulnerable global call tables",
+                "[/] Improved anti-cheat bypass reliability",
+                "[/] Improved script execution latency"
+            ]
+        },
+        {
+            "Version": "2.3.0",
+            "Title": "UI Redesign & Search System",
+            "Changes": [
+                "[+] Added instant global search bar",
+                "[+] Added script favoriting system",
+                "[+] Added animated UI themes (RGB, Cyberpunk, Dark)",
+                "[+] Added script usage stats counter",
+                "[-] Removed old static tab interface",
+                "[-] Removed hardcoded script lists",
+                "[/] Improved menu navigation speed",
+                "[/] Improved script categorization layout"
+            ]
+        },
+        {
+            "Version": "2.2.1",
+            "Title": "Compatibility Patch",
+            "Changes": [
+                "[+] Added support for 64-bit clients",
+                "[-] Removed legacy 32-bit execution handlers",
+                "[/] Improved auto-update check routine"
+            ]
+        },
+        {
+            "Version": "2.2.0",
+            "Title": "Execution Speed & Hub Expansion",
+            "Changes": [
+                "[+] Added H4xscripts V2 integration",
+                "[+] Added universal game auto-detect feature",
+                "[+] Added auto-reconnect on disconnect",
+                "[-] Removed outdated bypass hooks",
+                "[/] Improved script injection speeds by 50%",
+                "[/] Improved memory allocation efficiency"
+            ]
+        },
+        {
+            "Version": "2.1.0",
+            "Title": "Customization & Performance Update",
+            "Changes": [
+                "[+] Added keybind configuration for script menus",
+                "[+] Added FPS booster and light remover toggles",
+                "[+] Added Anti-AFK engine v2",
+                "[-] Removed redundant UI frame buffers",
+                "[/] Improved load time across all games"
+            ]
+        },
+        {
+            "Version": "2.0.0",
+            "Title": "Major Framework Rewrite",
+            "Changes": [
+                "[+] Added completely revamped UI design",
+                "[+] Added Universal Script Hub backend",
+                "[+] Added SpeedXhub initial support",
+                "[+] Added Lunor initial support",
+                "[-] Removed legacy v1 GUI engine",
+                "[-] Removed slow web request handlers",
+                "[/] Improved script stability and crash prevention"
+            ]
+        },
+        {
+            "Version": "1.4.0",
+            "Title": "Hub Integrations",
+            "Changes": [
+                "[+] Added dynamic script fetcher",
+                "[+] Added automatic script updating system",
+                "[-] Removed hardcoded script links",
+                "[/] Improved mobile touch controls"
+            ]
+        },
+        {
+            "Version": "1.3.0",
+            "Title": "Feature Update",
+            "Changes": [
+                "[+] Added executor detection system",
+                "[+] Added notification system for updates",
+                "[-] Removed broken bypass modules",
+                "[/] Improved overall interface alignment"
+            ]
+        },
+        {
+            "Version": "1.2.0",
+            "Title": "Performance Patch",
+            "Changes": [
+                "[+] Added lightweight script loader",
+                "[-] Removed heavy UI background effects",
+                "[/] Improved response time on execution"
+            ]
+        },
+        {
+            "Version": "1.1.0",
+            "Title": "First Feature Patch",
+            "Changes": [
+                "[+] Added keyless script collection",
+                "[+] Added copy script link button",
+                "[-] Removed broken GUI elements",
+                "[/] Improved script stability"
+            ]
+        },
+        {
+            "Version": "1.0.0",
+            "Title": "Initial Release",
+            "Changes": [
+                "[+] Added initial script hub release",
+                "[+] Added basic UI framework"
+            ]
+        }
+    ]
+}

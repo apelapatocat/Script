@@ -27651,6 +27651,449 @@ function PopupModule.new(PopupConfig)
 end
 
 return PopupModule end function __DARKLUA_BUNDLE_MODULES.E()
+return {
+    {
+        Name = "Ocean Blue",
+        Accent = "#0B5394",
+        Dialog = "#0A3D6B",
+        Outline = "#6DACEA",
+        Text = "#EBF5FF",
+        Placeholder = "#85AECF",
+        Background = "#051A2E",
+        Button = "#1C67A8",
+        Icon = "#A9D5FD",
+        HeaderBackground = "#051A2E",
+        HeaderOutline = "#6DACEA",
+        HeaderAccent = "#1C67A8",
+        HeaderTag = "#A9D5FD",
+        HeaderDesc = "#85AECF",
+        HeaderButton = "#1C67A8",
+        HeaderButtonText = "#FFFFFF",
+        ShortcutBackground = "#0B5394",
+        ShortcutHover = "#1C67A8",
+        ShortcutTitle = "#EBF5FF",
+        ShortcutDesc = "#85AECF",
+    },
+    {
+        Name = "Forest Green",
+        Accent = "#1A5E2E",
+        Dialog = "#114220",
+        Outline = "#8AC79B",
+        Text = "#E9FCE9",
+        Placeholder = "#79A378",
+        Background = "#0A2B14",
+        Button = "#2B7A42",
+        Icon = "#B3E3C1",
+        HeaderBackground = "#0A2B14",
+        HeaderOutline = "#8AC79B",
+        HeaderAccent = "#2B7A42",
+        HeaderTag = "#B3E3C1",
+        HeaderDesc = "#79A378",
+        HeaderButton = "#2B7A42",
+        HeaderButtonText = "#FFFFFF",
+        ShortcutBackground = "#1A5E2E",
+        ShortcutHover = "#2B7A42",
+        ShortcutTitle = "#E9FCE9",
+        ShortcutDesc = "#79A378",
+    },
+    {
+        Name = "Minimal Light",
+        Accent = "#F3F4F6",
+        Dialog = "#FFFFFF",
+        Outline = "#4B5563",
+        Text = "#1F2937",
+        Placeholder = "#9CA3AF",
+        Background = "#F9FAFB",
+        Button = "#E5E7EB",
+        Icon = "#4B5563",
+        HeaderBackground = "#F9FAFB",
+        HeaderOutline = "#4B5563",
+        HeaderAccent = "#E5E7EB",
+        HeaderTag = "#4B5563",
+        HeaderDesc = "#9CA3AF",
+        HeaderButton = "#E5E7EB",
+        HeaderButtonText = "#17131F",
+        ShortcutBackground = "#F3F4F6",
+        ShortcutHover = "#E5E7EB",
+        ShortcutTitle = "#1F2937",
+        ShortcutDesc = "#9CA3AF",
+    },
+    {
+        Name = "Retro Purple",
+        Accent = "#7E22CE",
+        Dialog = "#4A148C",
+        Outline = "#F0ABFC",
+        Text = "#FDF4FF",
+        Placeholder = "#BC8FDD",
+        Background = "#2D0557",
+        Button = "#9333EA",
+        Icon = "#F0ABFC",
+        HeaderBackground = "#2D0557",
+        HeaderOutline = "#F0ABFC",
+        HeaderAccent = "#9333EA",
+        HeaderTag = "#F0ABFC",
+        HeaderDesc = "#BC8FDD",
+        HeaderButton = "#9333EA",
+        HeaderButtonText = "#FFFFFF",
+        ShortcutBackground = "#7E22CE",
+        ShortcutHover = "#9333EA",
+        ShortcutTitle = "#FDF4FF",
+        ShortcutDesc = "#BC8FDD",
+    },
+    {
+        Name = "Sunset",
+        Accent = "#FF8847",
+        Dialog = "#CC5500",
+        Outline = "#FFD9C0",
+        Text = "#FFF7F0",
+        Placeholder = "#FFC099",
+        Background = "#331A00",
+        Button = "#FF7043",
+        Icon = "#FFD9C0",
+        HeaderBackground = "#331A00",
+        HeaderOutline = "#FFD9C0",
+        HeaderAccent = "#FF7043",
+        HeaderTag = "#FFD9C0",
+        HeaderDesc = "#FFC099",
+        HeaderButton = "#FF7043",
+        HeaderButtonText = "#FFFFFF",
+        ShortcutBackground = "#FF8847",
+        ShortcutHover = "#FF7043",
+        ShortcutTitle = "#FFF7F0",
+        ShortcutDesc = "#FFC099",
+    },
+    {
+        Name = "Neon Pulse",
+        Accent = "#00FF00",
+        Dialog = "#111111",
+        Outline = "#00FFFF",
+        Text = "#FFFFFF",
+        Placeholder = "#008800",
+        Background = "#000000",
+        Button = "#39FF14",
+        Icon = "#00FFFF",
+        HeaderBackground = "#000000",
+        HeaderOutline = "#00FFFF",
+        HeaderAccent = "#39FF14",
+        HeaderTag = "#00FFFF",
+        HeaderDesc = "#008800",
+        HeaderButton = "#39FF14",
+        HeaderButtonText = "#17131F",
+        ShortcutBackground = "#00FF00",
+        ShortcutHover = "#39FF14",
+        ShortcutTitle = "#FFFFFF",
+        ShortcutDesc = "#008800",
+    },
+    {
+        Name = "Steel Phantom",
+        Accent = "#404040",
+        Dialog = "#262626",
+        Outline = "#A3A3A3",
+        Text = "#D4D4D4",
+        Placeholder = "#737373",
+        Background = "#171717",
+        Button = "#525252",
+        Icon = "#A3A3A3",
+        HeaderBackground = "#171717",
+        HeaderOutline = "#A3A3A3",
+        HeaderAccent = "#525252",
+        HeaderTag = "#A3A3A3",
+        HeaderDesc = "#737373",
+        HeaderButton = "#525252",
+        HeaderButtonText = "#FFFFFF",
+        ShortcutBackground = "#404040",
+        ShortcutHover = "#525252",
+        ShortcutTitle = "#D4D4D4",
+        ShortcutDesc = "#737373",
+    },
+    {
+        Name = "Vaporwave",
+        Accent = "#FF00FF",
+        Dialog = "#1B001B",
+        Outline = "#00FFFF",
+        Text = "#FFFFFF",
+        Placeholder = "#FF69FF",
+        Background = "#0A0014",
+        Button = "#E75480",
+        Icon = "#00FFFF",
+        HeaderBackground = "#0A0014",
+        HeaderOutline = "#00FFFF",
+        HeaderAccent = "#E75480",
+        HeaderTag = "#00FFFF",
+        HeaderDesc = "#FF69FF",
+        HeaderButton = "#E75480",
+        HeaderButtonText = "#FFFFFF",
+        ShortcutBackground = "#FF00FF",
+        ShortcutHover = "#E75480",
+        ShortcutTitle = "#FFFFFF",
+        ShortcutDesc = "#FF69FF",
+    },
+    {
+        Name = "Deep Sea",
+        Accent = "#008B8B",
+        Dialog = "#005A5A",
+        Outline = "#80CBC4",
+        Text = "#E0FFFF",
+        Placeholder = "#4DB6AC",
+        Background = "#003636",
+        Button = "#00A3A3",
+        Icon = "#80CBC4",
+        HeaderBackground = "#003636",
+        HeaderOutline = "#80CBC4",
+        HeaderAccent = "#00A3A3",
+        HeaderTag = "#80CBC4",
+        HeaderDesc = "#4DB6AC",
+        HeaderButton = "#00A3A3",
+        HeaderButtonText = "#FFFFFF",
+        ShortcutBackground = "#008B8B",
+        ShortcutHover = "#00A3A3",
+        ShortcutTitle = "#E0FFFF",
+        ShortcutDesc = "#4DB6AC",
+    },
+    {
+        Name = "Sepia Warmth",
+        Accent = "#7B3F00",
+        Dialog = "#5C3200",
+        Outline = "#D2B48C",
+        Text = "#F5E8D6",
+        Placeholder = "#A98F70",
+        Background = "#3D291F",
+        Button = "#9D5B18",
+        Icon = "#D2B48C",
+        HeaderBackground = "#3D291F",
+        HeaderOutline = "#D2B48C",
+        HeaderAccent = "#9D5B18",
+        HeaderTag = "#D2B48C",
+        HeaderDesc = "#A98F70",
+        HeaderButton = "#9D5B18",
+        HeaderButtonText = "#FFFFFF",
+        ShortcutBackground = "#7B3F00",
+        ShortcutHover = "#9D5B18",
+        ShortcutTitle = "#F5E8D6",
+        ShortcutDesc = "#A98F70",
+    },
+    {
+        Name = "Monokai Dark",
+        Accent = "#F92672",
+        Dialog = "#272822",
+        Outline = "#66D9EF",
+        Text = "#F8F8F2",
+        Placeholder = "#75715E",
+        Background = "#1C1E1A",
+        Button = "#A6E22E",
+        Icon = "#66D9EF",
+        HeaderBackground = "#1C1E1A",
+        HeaderOutline = "#66D9EF",
+        HeaderAccent = "#A6E22E",
+        HeaderTag = "#66D9EF",
+        HeaderDesc = "#75715E",
+        HeaderButton = "#A6E22E",
+        HeaderButtonText = "#17131F",
+        ShortcutBackground = "#F92672",
+        ShortcutHover = "#A6E22E",
+        ShortcutTitle = "#F8F8F2",
+        ShortcutDesc = "#75715E",
+    },
+    {
+        Name = "Solarized Light",
+        Accent = "#268BD2",
+        Dialog = "#FDF6E3",
+        Outline = "#93A1A1",
+        Text = "#586E75",
+        Placeholder = "#839496",
+        Background = "#EEE8D5",
+        Button = "#B58900",
+        Icon = "#268BD2",
+        HeaderBackground = "#EEE8D5",
+        HeaderOutline = "#93A1A1",
+        HeaderAccent = "#B58900",
+        HeaderTag = "#268BD2",
+        HeaderDesc = "#839496",
+        HeaderButton = "#B58900",
+        HeaderButtonText = "#FFFFFF",
+        ShortcutBackground = "#268BD2",
+        ShortcutHover = "#B58900",
+        ShortcutTitle = "#586E75",
+        ShortcutDesc = "#839496",
+    },
+    {
+        Name = "Cherry Blossom",
+        Accent = "#F9BCCB",
+        Dialog = "#FFFAFD",
+        Outline = "#D96985",
+        Text = "#4A1429",
+        Placeholder = "#C397A3",
+        Background = "#FFF7F9",
+        Button = "#E68A9F",
+        Icon = "#D96985",
+        HeaderBackground = "#FFF7F9",
+        HeaderOutline = "#D96985",
+        HeaderAccent = "#E68A9F",
+        HeaderTag = "#D96985",
+        HeaderDesc = "#C397A3",
+        HeaderButton = "#E68A9F",
+        HeaderButtonText = "#17131F",
+        ShortcutBackground = "#F9BCCB",
+        ShortcutHover = "#E68A9F",
+        ShortcutTitle = "#4A1429",
+        ShortcutDesc = "#C397A3",
+    },
+    {
+        Name = "Charcoal Gold",
+        Accent = "#FFD700",
+        Dialog = "#2C2C2C",
+        Outline = "#C0C0C0",
+        Text = "#F5F5F5",
+        Placeholder = "#6E6E6E",
+        Background = "#1D1D1D",
+        Button = "#B8860B",
+        Icon = "#FFD700",
+        HeaderBackground = "#1D1D1D",
+        HeaderOutline = "#C0C0C0",
+        HeaderAccent = "#B8860B",
+        HeaderTag = "#FFD700",
+        HeaderDesc = "#6E6E6E",
+        HeaderButton = "#B8860B",
+        HeaderButtonText = "#FFFFFF",
+        ShortcutBackground = "#FFD700",
+        ShortcutHover = "#B8860B",
+        ShortcutTitle = "#F5F5F5",
+        ShortcutDesc = "#6E6E6E",
+    },
+    {
+        Name = "Icy Mint",
+        Accent = "#40E0D0",
+        Dialog = "#F0FFFF",
+        Outline = "#81D4FA",
+        Text = "#004D40",
+        Placeholder = "#B2DFDB",
+        Background = "#E0FFFF",
+        Button = "#80CBC4",
+        Icon = "#40E0D0",
+        HeaderBackground = "#E0FFFF",
+        HeaderOutline = "#81D4FA",
+        HeaderAccent = "#80CBC4",
+        HeaderTag = "#40E0D0",
+        HeaderDesc = "#B2DFDB",
+        HeaderButton = "#80CBC4",
+        HeaderButtonText = "#17131F",
+        ShortcutBackground = "#40E0D0",
+        ShortcutHover = "#80CBC4",
+        ShortcutTitle = "#004D40",
+        ShortcutDesc = "#B2DFDB",
+    },
+    {
+        Name = "Volcano",
+        Accent = "#B22222",
+        Dialog = "#1C1C1C",
+        Outline = "#FF6347",
+        Text = "#EBEBEB",
+        Placeholder = "#704747",
+        Background = "#0A0A0A",
+        Button = "#FF4500",
+        Icon = "#FF6347",
+        HeaderBackground = "#0A0A0A",
+        HeaderOutline = "#FF6347",
+        HeaderAccent = "#FF4500",
+        HeaderTag = "#FF6347",
+        HeaderDesc = "#704747",
+        HeaderButton = "#FF4500",
+        HeaderButtonText = "#FFFFFF",
+        ShortcutBackground = "#B22222",
+        ShortcutHover = "#FF4500",
+        ShortcutTitle = "#EBEBEB",
+        ShortcutDesc = "#704747",
+    },
+    {
+        Name = "Amethyst",
+        Accent = "#9966CC",
+        Dialog = "#36284C",
+        Outline = "#CCFF66",
+        Text = "#EDE9F2",
+        Placeholder = "#8A72A4",
+        Background = "#221A33",
+        Button = "#7A52AA",
+        Icon = "#CCFF66",
+        HeaderBackground = "#221A33",
+        HeaderOutline = "#CCFF66",
+        HeaderAccent = "#7A52AA",
+        HeaderTag = "#CCFF66",
+        HeaderDesc = "#8A72A4",
+        HeaderButton = "#7A52AA",
+        HeaderButtonText = "#FFFFFF",
+        ShortcutBackground = "#9966CC",
+        ShortcutHover = "#7A52AA",
+        ShortcutTitle = "#EDE9F2",
+        ShortcutDesc = "#8A72A4",
+    },
+    {
+        Name = "Pastel Dream",
+        Accent = "#FFB3BA",
+        Dialog = "#FAF3E0",
+        Outline = "#BAE1FF",
+        Text = "#333333",
+        Placeholder = "#C1B4A5",
+        Background = "#FFFFFF",
+        Button = "#BAE1FF",
+        Icon = "#FFB3BA",
+        HeaderBackground = "#FFFFFF",
+        HeaderOutline = "#BAE1FF",
+        HeaderAccent = "#BAE1FF",
+        HeaderTag = "#FFB3BA",
+        HeaderDesc = "#C1B4A5",
+        HeaderButton = "#BAE1FF",
+        HeaderButtonText = "#17131F",
+        ShortcutBackground = "#FFB3BA",
+        ShortcutHover = "#BAE1FF",
+        ShortcutTitle = "#333333",
+        ShortcutDesc = "#C1B4A5",
+    },
+    {
+        Name = "Coffee Shop",
+        Accent = "#795548",
+        Dialog = "#F5F5DC",
+        Outline = "#A1887F",
+        Text = "#3E2723",
+        Placeholder = "#BCB0A4",
+        Background = "#FFF8E1",
+        Button = "#D7CCC8",
+        Icon = "#795548",
+        HeaderBackground = "#FFF8E1",
+        HeaderOutline = "#A1887F",
+        HeaderAccent = "#D7CCC8",
+        HeaderTag = "#795548",
+        HeaderDesc = "#BCB0A4",
+        HeaderButton = "#D7CCC8",
+        HeaderButtonText = "#17131F",
+        ShortcutBackground = "#795548",
+        ShortcutHover = "#D7CCC8",
+        ShortcutTitle = "#3E2723",
+        ShortcutDesc = "#BCB0A4",
+    },
+    {
+        Name = "Cyberpunk Red",
+        Accent = "#FF3333",
+        Dialog = "#080008",
+        Outline = "#33FFFF",
+        Text = "#FDFDFD",
+        Placeholder = "#771111",
+        Background = "#000000",
+        Button = "#CC0000",
+        Icon = "#33FFFF",
+        HeaderBackground = "#000000",
+        HeaderOutline = "#33FFFF",
+        HeaderAccent = "#CC0000",
+        HeaderTag = "#33FFFF",
+        HeaderDesc = "#771111",
+        HeaderButton = "#CC0000",
+        HeaderButtonText = "#FFFFFF",
+        ShortcutBackground = "#FF3333",
+        ShortcutHover = "#CC0000",
+        ShortcutTitle = "#FDFDFD",
+        ShortcutDesc = "#771111",
+    },
+}
+end function __DARKLUA_BUNDLE_MODULES.F()
 
 local function makeTheme(name, background, accent)
     return {
@@ -27691,10 +28134,11 @@ return {
     Midnight = makeTheme("Vibe Midnight", "#0D0914", "#181120"),
     Violet = makeTheme("Vibe Violet", "#160C23", "#29153D"),
 }
-end function __DARKLUA_BUNDLE_MODULES.F()
-local VibeThemes = __DARKLUA_BUNDLE_MODULES.load('E')
+end function __DARKLUA_BUNDLE_MODULES.G()
+local Presets = __DARKLUA_BUNDLE_MODULES.load('E')
+local VibeThemes = __DARKLUA_BUNDLE_MODULES.load('F')
 return function(WindUI)
-    return {
+    local themes = {
         ["Vibe Midnight"] = VibeThemes.Midnight,
         ["Vibe Violet"] = VibeThemes.Violet,
         Dark = {
@@ -27916,7 +28360,10 @@ return function(WindUI)
             Icon = Color3.fromHex("#ffffff"),
         },
     }
-end end function __DARKLUA_BUNDLE_MODULES.G()
+    for _, theme in ipairs(Presets) do themes[theme.Name] = theme end
+    return themes
+end
+end function __DARKLUA_BUNDLE_MODULES.H()
 local Label = {}
 
 local Creator = __DARKLUA_BUNDLE_MODULES.load('k')
@@ -28016,7 +28463,7 @@ function Label.New(Text, Icon, Parent, IsPlaceholder, Radius)
 end
 
 
-return Label end function __DARKLUA_BUNDLE_MODULES.H()
+return Label end function __DARKLUA_BUNDLE_MODULES.I()
 local ScrollSlider = {}
 
 local UserInputService = game:GetService("UserInputService")
@@ -28189,7 +28636,7 @@ function ScrollSlider.New(ScrollingFrame, Parent, Window, Thickness)
 end
 
 
-return ScrollSlider end function __DARKLUA_BUNDLE_MODULES.I()
+return ScrollSlider end function __DARKLUA_BUNDLE_MODULES.J()
 local Tag = {}
 
 
@@ -28339,7 +28786,7 @@ function Tag:New(TagConfig, Parent)
 end
 
 
-return Tag end function __DARKLUA_BUNDLE_MODULES.J()
+return Tag end function __DARKLUA_BUNDLE_MODULES.K()
 local Creator = __DARKLUA_BUNDLE_MODULES.load('k')
 local HttpService = game:GetService("HttpService")
 local Storage = __DARKLUA_BUNDLE_MODULES.load('h')
@@ -28487,7 +28934,7 @@ function ConfigManager:CreateConfig(configFilename)
     
     function ConfigModule:Save()
         if Window.PendingFlags then
-            for flag, element in next, Window.PendingFlags do
+            for flag, element in next, Window.Flags or Window.PendingFlags do
                 ConfigModule:Register(flag, element)
             end
         end
@@ -28539,7 +28986,7 @@ function ConfigManager:CreateConfig(configFilename)
         end
         
         if Window.PendingFlags then
-            for flag, element in next, Window.PendingFlags do
+            for flag, element in next, Window.Flags or Window.PendingFlags do
                 ConfigModule:Register(flag, element)
             end
         end
@@ -28647,7 +29094,7 @@ function ConfigManager:GetConfig(configName)
 end
 
 return ConfigManager
-end function __DARKLUA_BUNDLE_MODULES.K()
+end function __DARKLUA_BUNDLE_MODULES.L()
 local OpenButton = {}
 
 local Creator = __DARKLUA_BUNDLE_MODULES.load('k')
@@ -28917,7 +29364,7 @@ end
 
 
 
-return OpenButton end function __DARKLUA_BUNDLE_MODULES.L()
+return OpenButton end function __DARKLUA_BUNDLE_MODULES.M()
 local ToolTip = {}
 
 local Creator = __DARKLUA_BUNDLE_MODULES.load('k')
@@ -29058,7 +29505,7 @@ end
 
 
 
-return ToolTip end function __DARKLUA_BUNDLE_MODULES.M()
+return ToolTip end function __DARKLUA_BUNDLE_MODULES.N()
 local Creator = __DARKLUA_BUNDLE_MODULES.load('k')
 local New = Creator.New
 local NewRoundFrame = Creator.NewRoundFrame
@@ -29717,7 +30164,7 @@ return function(Config)
     
     
     return Element
-end end function __DARKLUA_BUNDLE_MODULES.N()
+end end function __DARKLUA_BUNDLE_MODULES.O()
 local Creator = __DARKLUA_BUNDLE_MODULES.load('k')
 local New = Creator.New
 
@@ -29737,7 +30184,7 @@ function Element:New(ElementConfig)
         
         Locked = ElementConfig.Locked or false,  
     }  
-    local Paragraph = __DARKLUA_BUNDLE_MODULES.load('M')(ElementConfig)  
+    local Paragraph = __DARKLUA_BUNDLE_MODULES.load('N')(ElementConfig)  
       
     ParagraphModule.ParagraphFrame = Paragraph  
     if ElementConfig.Buttons and #ElementConfig.Buttons > 0 then  
@@ -29765,7 +30212,7 @@ function Element:New(ElementConfig)
     
 end
 
-return Element end function __DARKLUA_BUNDLE_MODULES.O()
+return Element end function __DARKLUA_BUNDLE_MODULES.P()
 local Creator = __DARKLUA_BUNDLE_MODULES.load('k')
 local New = Creator.New
 
@@ -29788,7 +30235,7 @@ function Element:New(Config)
     
     local CanCallback = true
     
-    Button.ButtonFrame = __DARKLUA_BUNDLE_MODULES.load('M')({
+    Button.ButtonFrame = __DARKLUA_BUNDLE_MODULES.load('N')({
         Title = Button.Title,
         Desc = Button.Desc,
         Parent = Config.Parent,
@@ -29863,7 +30310,7 @@ function Element:New(Config)
     return Button.__type, Button
 end
 
-return Element end function __DARKLUA_BUNDLE_MODULES.P()
+return Element end function __DARKLUA_BUNDLE_MODULES.Q()
 local Toggle = {}
 
 local Creator = __DARKLUA_BUNDLE_MODULES.load('k')
@@ -29991,7 +30438,7 @@ function Toggle.New(Value, Icon, Parent, Callback)
 end
 
 
-return Toggle end function __DARKLUA_BUNDLE_MODULES.Q()
+return Toggle end function __DARKLUA_BUNDLE_MODULES.R()
 local Checkbox = {}
 
 local Creator = __DARKLUA_BUNDLE_MODULES.load('k')
@@ -30085,13 +30532,13 @@ function Checkbox.New(Value, Icon, Parent, Callback)
 end
 
 
-return Checkbox end function __DARKLUA_BUNDLE_MODULES.R()
+return Checkbox end function __DARKLUA_BUNDLE_MODULES.S()
 local Creator = __DARKLUA_BUNDLE_MODULES.load('k')
 local New = Creator.New
 local Tween = Creator.Tween
 
-local CreateToggle = __DARKLUA_BUNDLE_MODULES.load('P').New
-local CreateCheckbox = __DARKLUA_BUNDLE_MODULES.load('Q').New
+local CreateToggle = __DARKLUA_BUNDLE_MODULES.load('Q').New
+local CreateCheckbox = __DARKLUA_BUNDLE_MODULES.load('R').New
 
 local Element = {}
 
@@ -30107,7 +30554,7 @@ function Element:New(Config)
         Callback = Config.Callback or function() end,
         UIElements = {}
     }
-    Toggle.ToggleFrame = __DARKLUA_BUNDLE_MODULES.load('M')({
+    Toggle.ToggleFrame = __DARKLUA_BUNDLE_MODULES.load('N')({
         Title = Toggle.Title,
         Desc = Toggle.Desc,
         
@@ -30177,7 +30624,7 @@ function Element:New(Config)
     return Toggle.__type, Toggle
 end
 
-return Element end function __DARKLUA_BUNDLE_MODULES.S()
+return Element end function __DARKLUA_BUNDLE_MODULES.T()
 local Creator = __DARKLUA_BUNDLE_MODULES.load('k')
 local New = Creator.New
 local Tween = Creator.Tween
@@ -30229,7 +30676,7 @@ function Element:New(Config)
         end
     end
     
-    Slider.SliderFrame = __DARKLUA_BUNDLE_MODULES.load('M')({
+    Slider.SliderFrame = __DARKLUA_BUNDLE_MODULES.load('N')({
         Title = Slider.Title,
         Desc = Slider.Desc,
         Parent = Config.Parent,
@@ -30410,11 +30857,11 @@ function Element:New(Config)
     return Slider.__type, Slider
 end
 
-return Element end function __DARKLUA_BUNDLE_MODULES.T()
+return Element end function __DARKLUA_BUNDLE_MODULES.U()
 local UserInputService = game:GetService("UserInputService")
 local Creator = __DARKLUA_BUNDLE_MODULES.load('k')
 local New = Creator.New
-local CreateLabel = __DARKLUA_BUNDLE_MODULES.load('G').New
+local CreateLabel = __DARKLUA_BUNDLE_MODULES.load('H').New
 
 local Element = { UICorner = 6, UIPadding = 8 }
 
@@ -30432,7 +30879,7 @@ function Element:New(Config)
     }
     local CanCallback = true
     local PendingKey
-    Keybind.KeybindFrame = __DARKLUA_BUNDLE_MODULES.load('M')({
+    Keybind.KeybindFrame = __DARKLUA_BUNDLE_MODULES.load('N')({
         Title = Keybind.Title, Desc = Keybind.Desc, Parent = Config.Parent,
         TextOffset = 85, Hover = Keybind.CanChange, Tab = Config.Tab,
         Index = Config.Index, Window = Config.Window, ElementTable = Keybind,
@@ -30519,7 +30966,7 @@ function Element:New(Config)
 end
 
 return Element
-end function __DARKLUA_BUNDLE_MODULES.U()
+end function __DARKLUA_BUNDLE_MODULES.V()
 local Creator = __DARKLUA_BUNDLE_MODULES.load('k')
 local New = Creator.New
 local Tween = Creator.Tween
@@ -30552,7 +30999,7 @@ function Element:New(Config)
     
     local CanCallback = true
 
-    Input.InputFrame = __DARKLUA_BUNDLE_MODULES.load('M')({
+    Input.InputFrame = __DARKLUA_BUNDLE_MODULES.load('N')({
         Title = Input.Title,
         Desc = Input.Desc,
         Parent = Config.Parent,
@@ -30627,7 +31074,7 @@ function Element:New(Config)
     return Input.__type, Input
 end
 
-return Element end function __DARKLUA_BUNDLE_MODULES.V()
+return Element end function __DARKLUA_BUNDLE_MODULES.W()
 local DropdownMenu = {}
 
 local UserInputService = game:GetService("UserInputService")
@@ -31145,7 +31592,7 @@ function DropdownMenu.New(Config, Dropdown, Element, CanCallback, Type)
 end
 
 
-return DropdownMenu end function __DARKLUA_BUNDLE_MODULES.W()
+return DropdownMenu end function __DARKLUA_BUNDLE_MODULES.X()
 local UserInputService = game:GetService("UserInputService")
 local Mouse = game:GetService("Players").LocalPlayer:GetMouse()
 local Camera = game:GetService("Workspace").CurrentCamera
@@ -31154,9 +31601,9 @@ local Creator = __DARKLUA_BUNDLE_MODULES.load('k')
 local New = Creator.New
 local Tween = Creator.Tween
 
-local CreateLabel = __DARKLUA_BUNDLE_MODULES.load('G').New
+local CreateLabel = __DARKLUA_BUNDLE_MODULES.load('H').New
 local CreateInput = __DARKLUA_BUNDLE_MODULES.load('w').New
-local CreateDropdown = __DARKLUA_BUNDLE_MODULES.load('V').New
+local CreateDropdown = __DARKLUA_BUNDLE_MODULES.load('W').New
 
 local CurrentCamera = workspace.CurrentCamera
 
@@ -31198,7 +31645,7 @@ function Element:New(Config)
     
     local CanCallback = true
     
-    Dropdown.DropdownFrame = __DARKLUA_BUNDLE_MODULES.load('M')({
+    Dropdown.DropdownFrame = __DARKLUA_BUNDLE_MODULES.load('N')({
         Title = Dropdown.Title,
         Desc = Dropdown.Desc,
         Parent = Config.Parent,
@@ -31266,7 +31713,7 @@ function Element:New(Config)
     return Dropdown.__type, Dropdown
 end
 
-return Element end function __DARKLUA_BUNDLE_MODULES.X()
+return Element end function __DARKLUA_BUNDLE_MODULES.Y()
 
 
 
@@ -31438,14 +31885,14 @@ function highlighter.run(source)
 	return table.concat(highlighted)
 end
 
-return highlighter end function __DARKLUA_BUNDLE_MODULES.Y()
+return highlighter end function __DARKLUA_BUNDLE_MODULES.Z()
 local Code = {}
 
 local Creator = __DARKLUA_BUNDLE_MODULES.load('k')
 local New = Creator.New
 local Tween = Creator.Tween
 
-local Highlighter = __DARKLUA_BUNDLE_MODULES.load('X')
+local Highlighter = __DARKLUA_BUNDLE_MODULES.load('Y')
 
 function Code.New(Code, Title, Parent, Callback, UIScale)
     local CodeModule = {
@@ -31648,12 +32095,12 @@ function Code.New(Code, Title, Parent, Callback, UIScale)
 end
 
 
-return Code end function __DARKLUA_BUNDLE_MODULES.Z()
+return Code end function __DARKLUA_BUNDLE_MODULES._()
 local Creator = __DARKLUA_BUNDLE_MODULES.load('k')
 local New = Creator.New
 
 
-local CodeComponent = __DARKLUA_BUNDLE_MODULES.load('Y')
+local CodeComponent = __DARKLUA_BUNDLE_MODULES.load('Z')
 
 local Element = {}
 
@@ -31710,7 +32157,7 @@ function Element:New(Config)
     return Code.__type, Code
 end
 
-return Element end function __DARKLUA_BUNDLE_MODULES._()
+return Element end function __DARKLUA_BUNDLE_MODULES.aa()
 local Creator = __DARKLUA_BUNDLE_MODULES.load('k')
 local New = Creator.New
 local Tween = Creator.Tween
@@ -32358,7 +32805,7 @@ function Element:New(Config)
     
     if Config.Window.NewElements then Element.UICorner = 14 end
     
-    Colorpicker.ColorpickerFrame = __DARKLUA_BUNDLE_MODULES.load('M')({
+    Colorpicker.ColorpickerFrame = __DARKLUA_BUNDLE_MODULES.load('N')({
         Title = Colorpicker.Title,
         Desc = Colorpicker.Desc,
         Parent = Config.Parent,
@@ -32425,7 +32872,7 @@ function Element:New(Config)
     return Colorpicker.__type, Colorpicker
 end
 
-return Element end function __DARKLUA_BUNDLE_MODULES.aa()
+return Element end function __DARKLUA_BUNDLE_MODULES.ab()
 local Creator = __DARKLUA_BUNDLE_MODULES.load('k')
 local New = Creator.New
 local Tween = Creator.Tween
@@ -32678,7 +33125,7 @@ function Element:New(Config)
     return Section.__type, Section
 end
 
-return Element end function __DARKLUA_BUNDLE_MODULES.ab()
+return Element end function __DARKLUA_BUNDLE_MODULES.ac()
 local Creator = __DARKLUA_BUNDLE_MODULES.load('k')
 local New = Creator.New
 
@@ -32705,7 +33152,7 @@ function Element:New(Config)
     return "Divider", { __type = "Divider", ElementFrame = MainDivider }
 end
 
-return Element end function __DARKLUA_BUNDLE_MODULES.ac()
+return Element end function __DARKLUA_BUNDLE_MODULES.ad()
 local Creator = __DARKLUA_BUNDLE_MODULES.load('k')
 local New = Creator.New
 
@@ -32721,7 +33168,7 @@ function Element:New(Config)
     return "Space", { __type = "Space", ElementFrame = MainSpace}
 end
 
-return Element end function __DARKLUA_BUNDLE_MODULES.ad()
+return Element end function __DARKLUA_BUNDLE_MODULES.ae()
 local Creator = __DARKLUA_BUNDLE_MODULES.load('k')
 local New = Creator.New
 
@@ -32788,7 +33235,7 @@ function Element:New(Config)
     return ImageModule.__type, ImageModule
 end
 
-return Element end function __DARKLUA_BUNDLE_MODULES.ae()
+return Element end function __DARKLUA_BUNDLE_MODULES.af()
 local Creator = __DARKLUA_BUNDLE_MODULES.load('k')
 local New = Creator.New
 
@@ -32833,7 +33280,8 @@ function Element:New(Config)
     }
     local padding = math.max(0, tonumber(Config.Padding) or 16)
     local gap = math.max(0, tonumber(Config.Gap) or 8)
-    local buttonHeight = Creator.MobileMode and 40 or 34
+    local buttonHeight = math.max(32, tonumber(Config.ButtonHeight) or (Creator.MobileMode and 40 or 34))
+    local fullWidthButtons = Config.ButtonsFullWidth == true
     local connections, buttonConnections, buttonRecords = {}, {}, {}
     local disposed = false
     local imageFrame
@@ -32863,19 +33311,11 @@ function Element:New(Config)
         ThemeTag = { Color = "HeaderOutline" },
         Parent = Main,
     })
-    New("Frame", {
-        Name = "Accent",
-        BorderSizePixel = 0,
-        Position = UDim2.fromOffset(0, padding),
-        Size = UDim2.new(0, 3, 1, -padding * 2),
-        ThemeTag = { BackgroundColor3 = "HeaderAccent" },
-        Parent = Main,
-    })
     local content = New("Frame", {
         Name = "Content",
         BackgroundTransparency = 1,
-        Position = UDim2.fromOffset(padding + 4, padding),
-        Size = UDim2.new(1, -padding * 2 - 4, 0, 0),
+        Position = UDim2.fromOffset(padding, padding),
+        Size = UDim2.new(1, -padding * 2, 0, 0),
         AutomaticSize = Enum.AutomaticSize.Y,
         Parent = Main,
     })
@@ -32917,9 +33357,9 @@ function Element:New(Config)
         Name = "Buttons",
         BackgroundTransparency = 1,
         Visible = false,
-        Size = UDim2.new(1, 0, 0, buttonHeight),
+        Size = UDim2.new(1, fullWidthButtons and -padding * 2 or 0, 0, buttonHeight),
         LayoutOrder = 4,
-        Parent = content,
+        Parent = fullWidthButtons and Main or content,
     })
     Header.UIElements.ButtonsContainer = actions
     Header.UIElements.Buttons = {}
@@ -32935,7 +33375,7 @@ function Element:New(Config)
         local x, y = 0, 0
         for _, record in ipairs(buttonRecords) do
             local measured = record.Label.TextBounds.X / scale() + 28
-            local desired = math.min(width, math.max(96, tonumber(record.Config.Width) or measured))
+            local desired = record.Config.FullWidth and width or math.min(width, math.max(96, tonumber(record.Config.Width) or measured))
             if x > 0 and x + desired > width then
                 x = 0
                 y = y + buttonHeight + gap
@@ -32944,7 +33384,7 @@ function Element:New(Config)
             record.Button.Size = UDim2.fromOffset(desired, buttonHeight)
             x = x + desired + gap
         end
-        local size = UDim2.new(1, 0, 0, y + buttonHeight)
+        local size = UDim2.new(1, fullWidthButtons and -padding * 2 or 0, 0, y + buttonHeight)
         if actions.Size ~= size then
             actions.Size = size
         end
@@ -32956,19 +33396,21 @@ function Element:New(Config)
         local width = Main.AbsoluteSize.X / scale()
         local imageSize = imageFrame and math.min(Header.ImageSize, math.max(64, width * 0.34)) or 0
         local reserve = imageSize > 0 and imageSize + padding or 0
-        local widthOffset = -padding * 2 - 4 - reserve
+        local widthOffset = -padding * 2 - reserve
         if content.Size.X.Scale ~= 1 or content.Size.X.Offset ~= widthOffset then
             content.Size = UDim2.new(1, widthOffset, content.Size.Y.Scale, content.Size.Y.Offset)
         end
+        layoutButtons()
+        local infoHeight = math.max(layout.AbsoluteContentSize.Y / scale(), imageSize)
+        local actionHeight = fullWidthButtons and actions.Visible and (gap + actions.Size.Y.Offset) or 0
+        if fullWidthButtons then actions.Position = UDim2.fromOffset(padding, padding + infoHeight + gap) end
         if imageFrame then
             imageFrame.Size = UDim2.fromOffset(imageSize, imageSize)
-            imageFrame.Position = UDim2.new(1, -padding, 0.5, 0)
+            imageFrame.Position = fullWidthButtons and UDim2.new(1, -padding, 0, padding + infoHeight / 2) or UDim2.new(1, -padding, 0.5, 0)
         end
-        layoutButtons()
         local height = math.max(
             tonumber(Config.MinHeight) or 0,
-            padding * 2 + layout.AbsoluteContentSize.Y / scale(),
-            imageSize + padding * 2
+            padding * 2 + infoHeight + actionHeight
         )
         local size = UDim2.new(1, 0, 0, math.ceil(height))
         if Main.Size ~= size then
@@ -33041,7 +33483,7 @@ function Element:New(Config)
                 local buttonLabel = New("TextLabel", {
                     Name = "Label",
                     Text = tostring(item.Title or "Button"),
-                    TextSize = 14,
+                    TextSize = Config.ButtonTextSize or 14,
                     FontFace = Font.new(Creator.Font, Enum.FontWeight.Medium),
                     BackgroundTransparency = 1,
                     TextWrapped = false,
@@ -33131,7 +33573,7 @@ function Element:New(Config)
 end
 
 return Element
-end function __DARKLUA_BUNDLE_MODULES.af()
+end function __DARKLUA_BUNDLE_MODULES.ag()
 local Creator = __DARKLUA_BUNDLE_MODULES.load('k')
 local New = Creator.New
 
@@ -33458,24 +33900,24 @@ function Element:New(Config)
 end
 
 return Element
-end function __DARKLUA_BUNDLE_MODULES.ag()
+end function __DARKLUA_BUNDLE_MODULES.ah()
 return {
     Elements = {
-        Paragraph   = __DARKLUA_BUNDLE_MODULES.load('N'),
-        Button      = __DARKLUA_BUNDLE_MODULES.load('O'),
-        Toggle      = __DARKLUA_BUNDLE_MODULES.load('R'),
-        Slider      = __DARKLUA_BUNDLE_MODULES.load('S'),
-        Keybind     = __DARKLUA_BUNDLE_MODULES.load('T'),
-        Input       = __DARKLUA_BUNDLE_MODULES.load('U'),
-        Dropdown    = __DARKLUA_BUNDLE_MODULES.load('W'),
-        Code        = __DARKLUA_BUNDLE_MODULES.load('Z'),
-        Colorpicker = __DARKLUA_BUNDLE_MODULES.load('_'),
-        Section     = __DARKLUA_BUNDLE_MODULES.load('aa'),
-        Divider     = __DARKLUA_BUNDLE_MODULES.load('ab'),
-        Space       = __DARKLUA_BUNDLE_MODULES.load('ac'),
-        Image       = __DARKLUA_BUNDLE_MODULES.load('ad'),
-        Header      = __DARKLUA_BUNDLE_MODULES.load('ae'),
-        QuickAccess = __DARKLUA_BUNDLE_MODULES.load('af'),
+        Paragraph   = __DARKLUA_BUNDLE_MODULES.load('O'),
+        Button      = __DARKLUA_BUNDLE_MODULES.load('P'),
+        Toggle      = __DARKLUA_BUNDLE_MODULES.load('S'),
+        Slider      = __DARKLUA_BUNDLE_MODULES.load('T'),
+        Keybind     = __DARKLUA_BUNDLE_MODULES.load('U'),
+        Input       = __DARKLUA_BUNDLE_MODULES.load('V'),
+        Dropdown    = __DARKLUA_BUNDLE_MODULES.load('X'),
+        Code        = __DARKLUA_BUNDLE_MODULES.load('_'),
+        Colorpicker = __DARKLUA_BUNDLE_MODULES.load('aa'),
+        Section     = __DARKLUA_BUNDLE_MODULES.load('ab'),
+        Divider     = __DARKLUA_BUNDLE_MODULES.load('ac'),
+        Space       = __DARKLUA_BUNDLE_MODULES.load('ad'),
+        Image       = __DARKLUA_BUNDLE_MODULES.load('ae'),
+        Header      = __DARKLUA_BUNDLE_MODULES.load('af'),
+        QuickAccess = __DARKLUA_BUNDLE_MODULES.load('ag'),
     },
     Load = function(tbl, Container, Elements, Window, WindUI, OnElementCreateFunction, ElementsModule, UIScale, Tab)
         for name, module in next, Elements do
@@ -33494,6 +33936,8 @@ return {
                 local elementInstance, content = module:New(config)
                 
                 if config.Flag and typeof(config.Flag) == "string" then
+                    content.Flag = config.Flag
+                    Window.Flags[config.Flag] = content
                     if Window.CurrentConfig then
                         Window.CurrentConfig:Register(config.Flag, content)
                         
@@ -33597,7 +34041,7 @@ return {
     end,
     
 }
-end function __DARKLUA_BUNDLE_MODULES.ah()
+end function __DARKLUA_BUNDLE_MODULES.ai()
 local UserInputService = game:GetService("UserInputService")
 local Mouse = game.Players.LocalPlayer:GetMouse()
 
@@ -33605,8 +34049,8 @@ local Creator = __DARKLUA_BUNDLE_MODULES.load('k')
 local New = Creator.New
 local Tween = Creator.Tween
 
-local CreateToolTip = __DARKLUA_BUNDLE_MODULES.load('L').New
-local CreateScrollSlider = __DARKLUA_BUNDLE_MODULES.load('H').New
+local CreateToolTip = __DARKLUA_BUNDLE_MODULES.load('M').New
+local CreateScrollSlider = __DARKLUA_BUNDLE_MODULES.load('I').New
 
 
 
@@ -33963,7 +34407,7 @@ function TabModule.New(Config, UIScale)
     
 	
 	
-    Tab.ElementsModule = __DARKLUA_BUNDLE_MODULES.load('ag')
+    Tab.ElementsModule = __DARKLUA_BUNDLE_MODULES.load('ah')
     
     Tab.ElementsModule.Load(Tab, Tab.UIElements.ContainerFrame, Tab.ElementsModule.Elements, Window, WindUI, nil, Tab.ElementsModule, UIScale)
     
@@ -34105,7 +34549,7 @@ function TabModule:SelectTab(TabIndex)
 end
 
 return TabModule
-end function __DARKLUA_BUNDLE_MODULES.ai()
+end function __DARKLUA_BUNDLE_MODULES.aj()
 local Section = {}
 
 
@@ -34113,7 +34557,7 @@ local Creator = __DARKLUA_BUNDLE_MODULES.load('k')
 local New = Creator.New
 local Tween = Creator.Tween
 
-local TabModule = __DARKLUA_BUNDLE_MODULES.load('ah')
+local TabModule = __DARKLUA_BUNDLE_MODULES.load('ai')
 
 function Section.New(SectionConfig, Parent, Folder, UIScale, Window)
     local SectionModule = {
@@ -34280,7 +34724,7 @@ end
 
 
 return Section
-end function __DARKLUA_BUNDLE_MODULES.aj()
+end function __DARKLUA_BUNDLE_MODULES.ak()
 return { 
     Tab         = "table-of-contents",
     Paragraph   = "type",
@@ -34292,7 +34736,7 @@ return {
     Dropdown    = "chevrons-up-down",
     Code        = "terminal",
     Colorpicker = "palette",
-}end function __DARKLUA_BUNDLE_MODULES.ak()
+}end function __DARKLUA_BUNDLE_MODULES.al()
 local UserInputService = game:GetService("UserInputService")
 
 local SearchBar = {
@@ -34314,7 +34758,7 @@ function SearchBar.new(TabModule, Parent, OnClose)
         Width = 400,
         MaxHeight = 380,
         
-        Icons = __DARKLUA_BUNDLE_MODULES.load('aj')
+        Icons = __DARKLUA_BUNDLE_MODULES.load('ak')
     }
     
     
@@ -34817,7 +35261,7 @@ function SearchBar.new(TabModule, Parent, OnClose)
     return SearchBarModule
 end
 
-return SearchBar end function __DARKLUA_BUNDLE_MODULES.al()
+return SearchBar end function __DARKLUA_BUNDLE_MODULES.am()
 
 local UserInputService = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
@@ -34831,12 +35275,12 @@ local New = Creator.New
 local Tween = Creator.Tween
 
 
-local CreateLabel = __DARKLUA_BUNDLE_MODULES.load('G').New
+local CreateLabel = __DARKLUA_BUNDLE_MODULES.load('H').New
 local CreateButton = __DARKLUA_BUNDLE_MODULES.load('v').New
-local CreateScrollSlider = __DARKLUA_BUNDLE_MODULES.load('H').New
-local Tag = __DARKLUA_BUNDLE_MODULES.load('I')
+local CreateScrollSlider = __DARKLUA_BUNDLE_MODULES.load('I').New
+local Tag = __DARKLUA_BUNDLE_MODULES.load('J')
 
-local ConfigManager = __DARKLUA_BUNDLE_MODULES.load('J')
+local ConfigManager = __DARKLUA_BUNDLE_MODULES.load('K')
 
 local Notified = false
 
@@ -34900,6 +35344,7 @@ return function(Config)
         
         TopBarButtons = {},
         AllElements = {},
+        Flags = {},
         Tabs = {},
         SidebarSections = {},
         
@@ -35725,7 +36170,7 @@ New("Frame", {
     
     
     
-    Window.OpenButtonMain = __DARKLUA_BUNDLE_MODULES.load('K').New(Window)
+    Window.OpenButtonMain = __DARKLUA_BUNDLE_MODULES.load('L').New(Window)
 
     
     task.spawn(function()
@@ -36172,8 +36617,8 @@ New("Frame", {
     end
     
     
-    local TabModuleMain = __DARKLUA_BUNDLE_MODULES.load('ah')
-    local SectionModule = __DARKLUA_BUNDLE_MODULES.load('ai')
+    local TabModuleMain = __DARKLUA_BUNDLE_MODULES.load('ai')
+    local SectionModule = __DARKLUA_BUNDLE_MODULES.load('aj')
     local TabModule = TabModuleMain.Init(Window, Config.WindUI, Config.Parent.Parent.ToolTips)
     TabModule:OnChange(function(t) Window.CurrentTab = t end)
     
@@ -36553,7 +36998,7 @@ New("Frame", {
     
     
     if not Window.HideSearchBar then
-        local SearchBar = __DARKLUA_BUNDLE_MODULES.load('ak')
+        local SearchBar = __DARKLUA_BUNDLE_MODULES.load('al')
         local IsOpen = false
         local CurrentSearchBar
     
@@ -36616,7 +37061,95 @@ New("Frame", {
 
     return Window
 end
-end function __DARKLUA_BUNDLE_MODULES.am()
+end function __DARKLUA_BUNDLE_MODULES.an()
+local Storage = __DARKLUA_BUNDLE_MODULES.load('h')
+
+return function(window, tab)
+    local manager = window.ConfigManager
+    local path = window.StoragePath .. "/config-settings.json"
+    local preferences = Storage.ReadJSON(path) or {}
+    local selected = type(preferences.Selected) == "string" and preferences.Selected or "Default"
+    local name = selected
+    local initializing = true
+    local refreshing = false
+    local controls = {}
+    local function valid(value)
+        if type(value) ~= "string" then return nil end
+        value = value:match("^%s*(.-)%s*$")
+        if value == "" or value == "." or value == ".." or #value > 80 or value:find('[%c/\\:*?"<>|]') then return nil end
+        return value
+    end
+    selected = valid(selected) or "Default"
+    name = selected
+    local function savePreferences()
+        Storage.WriteJSON(path, { Selected = selected, AutoLoad = preferences.AutoLoad == true })
+    end
+    local function notify(title, content)
+        window.Library:Notify({ Title = title, Content = content, Force = true, Duration = 4 })
+    end
+    local function refresh()
+        local values = manager:AllConfigs()
+        table.sort(values)
+        if not table.find(values, selected) then table.insert(values, 1, selected) end
+        if controls.Select then
+            refreshing = true
+            controls.Select:Refresh(values)
+            refreshing = false
+        end
+        return values
+    end
+    local function load()
+        if not valid(selected) then return false end
+        local config = manager:CreateConfig(selected)
+        local ok, result, err = pcall(config.Load, config)
+        if not ok or result == false then
+            notify("Config not loaded", tostring(ok and err or result))
+            return false
+        end
+        savePreferences()
+        notify("Config loaded", selected)
+        return true
+    end
+    tab:Section({ Title = "CONFIGS" })
+    controls.Name = tab:Input({ Title = "Config name", Value = name, Placeholder = "Enter config name", Callback = function(value) name = tostring(value) end })
+    controls.Save = tab:Button({
+        Title = "Save config", Icon = "save",
+        Callback = function()
+            local clean = valid(name)
+            if not clean then notify("Config name", "Use a name without slashes or filename symbols."); return end
+            local config = manager:CreateConfig(clean)
+            local ok, err = pcall(config.Save, config)
+            if not ok then notify("Config not saved", tostring(err)); return end
+            selected = clean
+            savePreferences()
+            refresh()
+            controls.Select:Select(selected)
+            notify("Config saved", selected)
+        end,
+    })
+    controls.Select = tab:Dropdown({
+        Title = "Select config", Values = refresh(), Value = selected, AllowNone = false,
+        Callback = function(value)
+            if not refreshing and valid(value) then selected = value; name = value; controls.Name:Set(value); if not initializing then savePreferences() end end
+        end,
+    })
+    controls.AutoLoad = tab:Toggle({
+        Title = "Auto load config", Desc = "Restore the selected config when this hub starts.", Value = preferences.AutoLoad == true,
+        Callback = function(enabled)
+            preferences.AutoLoad = enabled
+            if not initializing then savePreferences(); if enabled then load() end end
+        end,
+    })
+    controls.Load = tab:Button({ Title = "Load config", Icon = "folder-open", Callback = load })
+    controls.Refresh = tab:Button({ Title = "Refresh configs", Icon = "refresh-cw", Callback = refresh })
+    initializing = false
+    task.defer(function()
+        task.wait()
+        if not window.Destroyed and preferences.AutoLoad == true then load() end
+    end)
+    return controls
+end
+end function __DARKLUA_BUNDLE_MODULES.ao()
 return function(window, options)
     local config = table.clone(options or {})
     config.Title = config.Title or "Settings"
@@ -36624,33 +37157,128 @@ return function(window, options)
     local tab = window:Tab(config)
     local settings = window.UISettings
     tab.Controls = {}
+    local themeNames = { "Vibe Midnight", "Vibe Violet" }
+    local otherThemes = {}
+    for name in pairs(window.Library:GetThemes()) do
+        if name ~= "Vibe Midnight" and name ~= "Vibe Violet" then table.insert(otherThemes, name) end
+    end
+    table.sort(otherThemes)
+    for _, name in ipairs(otherThemes) do table.insert(themeNames, name) end
     tab:Header({ Tag = "MAKE IT YOURS", Title = config.Title, Desc = "A familiar feel. A little more you." })
     tab:Section({ Title = "APPEARANCE" })
     tab.Controls.Theme = tab:Dropdown({
-        Title = "Theme", Values = { "Vibe Midnight", "Vibe Violet" }, Value = settings.Theme,
+        Title = "Theme", Values = themeNames, Value = settings.Theme, Flag = "ui.theme",
         AllowNone = false, Callback = function(value) window:SetTheme(value) end,
     })
     tab.Controls.Transparent = tab:Toggle({
-        Title = "Transparent window", Desc = "Let a little of the game show through.", Value = settings.Transparent,
+        Title = "Transparent window", Desc = "Let a little of the game show through.", Value = settings.Transparent, Flag = "ui.transparent",
         Callback = function(value) window:ToggleTransparency(value) end,
     })
     tab.Controls.Scale = tab:Slider({
-        Title = "Interface scale", Desc = "Window size (%)", Step = 5,
+        Title = "Interface scale", Desc = "Window size (%)", Step = 5, Flag = "ui.scale",
         Value = { Min = 30, Max = 120, Default = settings.Scale },
         Callback = function(value) window:SetUIScale(tonumber(value) / 100) end,
     })
     tab:Section({ Title = "PREFERENCES" })
     tab.Controls.Shortcut = tab:Keybind({
         Title = "Show / hide shortcut", Desc = "Click to choose a keyboard shortcut. Escape cancels.",
-        Value = settings.ToggleKey, KeyboardOnly = true,
+        Value = settings.ToggleKey, KeyboardOnly = true, Flag = "ui.shortcut",
         OnChanged = function(value) window:SetToggleKey(value) end,
     })
     tab.Controls.Notifications = tab:Toggle({
-        Title = "Notifications", Desc = "Show hub announcements.", Value = settings.Notifications,
+        Title = "Notifications", Desc = "Show hub announcements.", Value = settings.Notifications, Flag = "ui.notifications",
         Callback = function(value) window:SetNotifications(value) end,
     })
     tab:Button({ Title = "Center window", Icon = "scan", Callback = function() window:SetToTheCenter() end })
+    if config.Configs then tab.Controls.Configs = __DARKLUA_BUNDLE_MODULES.load('an')(window, tab) end
     return tab
+end
+end function __DARKLUA_BUNDLE_MODULES.ap()
+local Creator = __DARKLUA_BUNDLE_MODULES.load('k')
+local RunService = game:GetService("RunService")
+local MarketplaceService = game:GetService("MarketplaceService")
+local Stats = game:GetService("Stats")
+
+return function(window, tab, options)
+    options = options or {}
+    local paragraph = tab:Paragraph({ Title = options.Title or "Session stats", Desc = "Loading session details…" })
+    local started = os.clock()
+    local elapsed, frames, fps = 0, 0, 60
+    local gameName = "Place " .. tostring(game.PlaceId)
+    task.spawn(function()
+        local ok, info = pcall(MarketplaceService.GetProductInfo, MarketplaceService, game.PlaceId)
+        if ok and info and info.Name then gameName = info.Name end
+    end)
+    local function update()
+        if window.Destroyed or not paragraph.ElementFrame.Parent then return end
+        local seconds = math.floor(os.clock() - started)
+        local uptime = string.format("%02d:%02d:%02d", math.floor(seconds / 3600), math.floor(seconds / 60) % 60, seconds % 60)
+        local ok, ping = pcall(function() return Stats.Network.ServerStatsItem["Data Ping"]:GetValue() end)
+        paragraph:SetDesc("Game: " .. gameName .. "\nRank: " .. tostring(options.Rank or "Member") .. "\nFPS: " .. string.format("%.1f", fps) .. "\nPing: " .. (ok and string.format("%.1f ms", ping) or "Unavailable") .. "\nSession: " .. uptime)
+    end
+    update()
+    Creator.AddSignal(RunService.RenderStepped, function(dt)
+        if window.Destroyed or not paragraph.ElementFrame.Parent then return end
+        elapsed = elapsed + dt
+        frames = frames + 1
+        if elapsed >= 1 then
+            fps = frames / elapsed
+            elapsed, frames = 0, 0
+            update()
+        end
+    end)
+    return paragraph
+end
+end function __DARKLUA_BUNDLE_MODULES.aq()
+local Creator = __DARKLUA_BUNDLE_MODULES.load('k')
+local HttpService = game:GetService("HttpService")
+
+return function(window, tab, options)
+    options = options or {}
+    local invite = options.Invite or ""
+    local controller = {}
+    controller.Info = tab:Paragraph({
+        Title = options.Title or "Our Discord community",
+        Image = options.Image or window.Icon, ImageSize = 64,
+        Desc = invite ~= "" and "Meet the community, share feedback, and follow new releases." or "Community invite coming soon.",
+        Buttons = { { Title = "Copy Discord invite", Callback = function() window:CopyLink(invite, { Title = "Discord" }) end } },
+    })
+    local inviteCode = invite:match("discord%.gg/([%w_-]+)") or invite:match("discord%.com/invite/([%w_-]+)")
+    if inviteCode and options.FetchInfo ~= false then
+        task.spawn(function()
+            local ok, info = pcall(function()
+                local response = Creator.Request({ Url = "https://discord.com/api/v10/invites/" .. inviteCode .. "?with_counts=true", Method = "GET" })
+                return HttpService:JSONDecode(response.Body)
+            end)
+            if not window.Destroyed and controller.Info.ElementFrame.Parent and ok and info and info.guild then
+                controller.Info:SetTitle(info.guild.name or options.Title or "Our Discord community")
+                controller.Info:SetDesc("Members: " .. tostring(info.approximate_member_count or "—") .. "\nOnline: " .. tostring(info.approximate_presence_count or "—") .. "\n" .. invite)
+            end
+        end)
+    end
+    if options.Feedback ~= false then
+        tab:Section({ Title = "FEEDBACK" })
+        local message = ""
+        controller.Message = tab:Input({
+            Title = "Your feedback", Type = "Textarea", Value = "", Placeholder = "Tell us what could be better…",
+            Callback = function(value) message = tostring(value) end,
+        })
+        controller.Copy = tab:Button({
+            Title = "Copy feedback", Desc = "Copy your message, then share it in our Discord.", Icon = "copy",
+            Callback = function()
+                local text = message:match("^%s*(.-)%s*$")
+                local copy = setclipboard or toclipboard
+                if text == "" then
+                    window.Library:Notify({ Title = "Feedback", Content = "Write your feedback first.", Force = true })
+                elseif type(copy) == "function" and pcall(copy, window.Title .. " feedback\n\n" .. text) then
+                    window.Library:Notify({ Title = "Feedback copied", Content = "Share your message in our Discord community.", Force = true })
+                else
+                    window.Library:Notify({ Title = "Feedback", Content = "Clipboard access is unavailable in this client.", Force = true })
+                end
+            end,
+        })
+    end
+    return controller
 end
 end end
 local WindUI = {
@@ -36888,7 +37516,7 @@ function WindUI:Popup(PopupConfig)
 end
 
 
-WindUI.Themes = __DARKLUA_BUNDLE_MODULES.load('F')(WindUI)
+WindUI.Themes = __DARKLUA_BUNDLE_MODULES.load('G')(WindUI)
 
 Creator.Themes = WindUI.Themes
 
@@ -36898,7 +37526,7 @@ WindUI:SetLanguage(Creator.Language)
 
 
 function WindUI:CreateWindow(Config)
-    local CreateWindow = __DARKLUA_BUNDLE_MODULES.load('al')
+    local CreateWindow = __DARKLUA_BUNDLE_MODULES.load('am')
     if WindUI.Window then
         warn("You cannot create more than one window")
         return
@@ -36990,9 +37618,15 @@ function WindUI:CreateWindow(Config)
     Preferences.Attach(Window, WindUI, Config, settings, hadSaved, folderPath)
     Runtime.Register(folderPath, Window)
     function Window:SettingsTab(options)
-        return __DARKLUA_BUNDLE_MODULES.load('am')(Window, options)
+        return __DARKLUA_BUNDLE_MODULES.load('ao')(Window, options)
     end
-    function Window:CopyLink(link, options)
+    function Window:SessionStats(tab, options)
+        return __DARKLUA_BUNDLE_MODULES.load('ap')(Window, tab, options)
+    end
+    function Window:Community(tab, options)
+        return __DARKLUA_BUNDLE_MODULES.load('aq')(Window, tab, options)
+    end
+    function Window:CopyText(link, options)
         options = options or {}
         local title = options.Title or "Link"
         if type(link) ~= "string" or link == "" then
@@ -37000,7 +37634,12 @@ function WindUI:CreateWindow(Config)
         end
         local copy = setclipboard or toclipboard
         local copied = type(copy) == "function" and pcall(copy, link)
-        return WindUI:Notify({ Title = copied and (title .. " copied") or title, Content = copied and "Paste the link into your browser." or link, Duration = 4, Force = true })
+        return WindUI:Notify({ Title = copied and (title .. " copied") or title, Content = copied and (options.SuccessMessage or "Copied to your clipboard.") or link, Duration = 4, Force = true })
+    end
+    function Window:CopyLink(link, options)
+        options = table.clone(options or {})
+        options.SuccessMessage = options.SuccessMessage or "Paste the link into your browser."
+        return Window:CopyText(link, options)
     end
     if Config.Version then
         Window:Tag({ Title = "v" .. tostring(Config.Version), Color = Color3.fromHex("#A855F7") })

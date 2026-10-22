@@ -25319,292 +25319,251 @@ end
 
 
 return Localization end function __DARKLUA_BUNDLE_MODULES.n()
+return function(mobile, viewport, lower)
+    local width, height = math.max(1, viewport.X), math.max(1, viewport.Y)
+    local margin = mobile and 12 or 29
+    local top = math.min(56, height * 0.2)
+    local bottom = mobile and (lower and 12 or 72) or (lower and 29 or 129)
+    bottom = math.min(bottom, height * 0.3)
+    local availableHeight = math.max(1, height - top - bottom)
+    local count = mobile and (height < 500 and 2 or 3) or math.huge
+    return {
+        Width = math.max(1, math.min(mobile and 250 or 300, width - margin * 2)),
+        Margin = margin, Top = top, Bottom = bottom, Height = availableHeight,
+        Padding = mobile and 10 or 14, Gap = mobile and 4 or 5, StackGap = mobile and 6 or 8,
+        MaxVisible = count,
+        MaxHeight = mobile and math.max(60, math.min(160, (availableHeight - (count - 1) * 6) / count)) or math.huge,
+        IconSize = mobile and 20 or 26, TitleSize = mobile and 15 or 16,
+        ContentSize = mobile and 14 or 15, Radius = mobile and 11 or 13, Animation = mobile and 0.22 or 0.45,
+    }
+end
+end function __DARKLUA_BUNDLE_MODULES.o()
 local Creator = __DARKLUA_BUNDLE_MODULES.load('l')
-local New = Creator.New
-local Tween = Creator.Tween
+local GetLayout = __DARKLUA_BUNDLE_MODULES.load('n')
+local New, Tween = Creator.New, Creator.Tween
 
 local NotificationModule = {
-    Size = UDim2.new(0,300,1,-100-56),
-    SizeLower = UDim2.new(0,300,1,-56),
-    UICorner = 13,
-    UIPadding = 14,
-    
-    Holder = nil,
-    NotificationIndex = 0,
-    Notifications = {}
+    Size = UDim2.new(0, 300, 1, -156), SizeLower = UDim2.new(0, 300, 1, -56),
+    UICorner = 13, UIPadding = 14, Holder = nil, NotificationIndex = 0, Notifications = {},
 }
 
-function NotificationModule.Init(Parent)
-    local NotModule = {
-        Lower = false
-    }
-    
-    function NotModule.SetLower(val)
-        NotModule.Lower = val
-        NotModule.Frame.Size = val and NotificationModule.SizeLower or NotificationModule.Size
+local function trim(holder, maximum)
+    if not Creator.MobileMode then return end
+    local active = {}
+    for key, item in pairs(NotificationModule.Notifications) do
+        if not item.Closed and item.UIElements.Container and item.UIElements.Container.Parent == holder then
+            table.insert(active, { Key = key, Item = item })
+        end
     end
-    
-    NotModule.Frame = New("Frame", {
-        Position = UDim2.new(1,-116/4,0,56),
-        AnchorPoint = Vector2.new(1,0),
-        Size = NotificationModule.Size ,
-        Parent = Parent,
-        BackgroundTransparency = 1,
-        
-    
-
-
-}, {
-        New("UIListLayout", {
-            HorizontalAlignment = "Center",
-			SortOrder = "LayoutOrder",
-			VerticalAlignment = "Bottom",
-			Padding = UDim.new(0, 8),
-        }),
-        New("UIPadding", {
-            PaddingBottom = UDim.new(0,116/4)
-        })
-    })
-    return NotModule
+    table.sort(active, function(a, b) return a.Key < b.Key end)
+    for position = 1, #active - maximum do active[position].Item:Close() end
 end
 
-function NotificationModule.New(Config)
-    local Notification = {
-        Title = Config.Title or "Notification",
-        Content = Config.Content or nil,
-        Icon = Config.Icon or nil,
-        IconThemed = Config.IconThemed,
-        Background = Config.Background,
-        BackgroundImageTransparency = Config.BackgroundImageTransparency,
-        Duration = Config.Duration or 5,
-        Buttons = Config.Buttons or {},
-        CanClose = true,
-        UIElements = {},
-        Closed = false,
-    }
-    if Notification.CanClose == nil then
-        Notification.CanClose = true
+function NotificationModule.Init(parent)
+    local holder = { Lower = false }
+    holder.Frame = New("Frame", {
+        Name = "NotificationHolder", BackgroundTransparency = 1,
+        AnchorPoint = Vector2.new(1, 0), Parent = parent,
+    })
+    local list = New("UIListLayout", {
+        HorizontalAlignment = "Center", SortOrder = "LayoutOrder", VerticalAlignment = "Bottom", Parent = holder.Frame,
+    })
+    local function resize()
+        local layout = GetLayout(Creator.MobileMode, parent.AbsoluteSize, holder.Lower)
+        holder.Layout = layout
+        holder.Frame.Position = UDim2.new(1, -layout.Margin, 0, layout.Top)
+        holder.Frame.Size = UDim2.new(0, layout.Width, 1, -layout.Top - layout.Bottom)
+        holder.Frame:SetAttribute("Lower", holder.Lower)
+        list.Padding = UDim.new(0, layout.StackGap)
+        trim(holder.Frame, layout.MaxVisible)
     end
+    function holder.SetLower(value)
+        holder.Lower = value == true
+        resize()
+    end
+    resize()
+    Creator.AddSignal(parent:GetPropertyChangedSignal("AbsoluteSize"), resize)
+    return holder
+end
+
+function NotificationModule.New(config)
+    local holder = config.Holder
+    local function getLayout()
+        return GetLayout(Creator.MobileMode, holder.Parent.AbsoluteSize, holder:GetAttribute("Lower"))
+    end
+    local layout = getLayout()
+    local notification = {
+        Title = config.Title or "Notification", Content = config.Content,
+        Icon = config.Icon, IconThemed = config.IconThemed,
+        Background = config.Background, BackgroundImageTransparency = config.BackgroundImageTransparency,
+        Duration = math.max(0, tonumber(config.Duration) or 5), Buttons = config.Buttons or {},
+        CanClose = true, Closed = false, UIElements = {},
+    }
     NotificationModule.NotificationIndex = NotificationModule.NotificationIndex + 1
-    NotificationModule.Notifications[NotificationModule.NotificationIndex] = Notification
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    local Icon
-
-    if Notification.Icon then
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        Icon = Creator.Image(
-            Notification.Icon,
-            Notification.Title .. ":" .. Notification.Icon,
-            0,
-            Config.Window,
-            "Notification",
-            Notification.IconThemed
-        )
-        Icon.Size = UDim2.new(0,26,0,26)
-        Icon.Position = UDim2.new(0,NotificationModule.UIPadding,0,NotificationModule.UIPadding)
-        
+    local index = NotificationModule.NotificationIndex
+    NotificationModule.Notifications[index] = notification
+    local connections, sizeTween, timer = {}, nil, nil
+    local disposed, opened = false, false
+    local function connect(signal, callback)
+        local connection = Creator.AddSignal(signal, callback)
+        table.insert(connections, connection)
+        return connection
     end
-    
-    local CloseButton
-    if Notification.CanClose then
-        CloseButton = New("ImageButton", {
-            Image = Creator.Icon("x")[1],
-            ImageRectSize = Creator.Icon("x")[2].ImageRectSize,
-            ImageRectOffset = Creator.Icon("x")[2].ImageRectPosition,
-            BackgroundTransparency = 1,
-            Size = UDim2.new(0,16,0,16),
-            Position = UDim2.new(1,-NotificationModule.UIPadding,0,NotificationModule.UIPadding),
-            AnchorPoint = Vector2.new(1,0),
-            ThemeTag = {
-                ImageColor3 = "Text"
-            },
-            ImageTransparency = .4,
-        }, {
-            New("TextButton", {
-                Size = UDim2.new(1,8,1,8),
-                BackgroundTransparency = 1,
-                AnchorPoint = Vector2.new(0.5,0.5),
-                Position = UDim2.new(0.5,0,0.5,0),
-                Text = "",
-            })
+    local container = New("Frame", {
+        Name = "Notification", BackgroundTransparency = 1, Size = UDim2.new(1, 0, 0, 0), LayoutOrder = index, Parent = holder,
+    })
+    local main = Creator.NewRoundFrame(layout.Radius, "Squircle", {
+        Name = "Card", Size = UDim2.new(1, 0, 0, 0),
+        Position = UDim2.new(2, 0, 1, 0), AnchorPoint = Vector2.new(0, 1),
+        ImageTransparency = 0.05, ThemeTag = { ImageColor3 = "Background" }, Parent = container,
+    })
+    local clip = New("CanvasGroup", { Size = UDim2.fromScale(1, 1), BackgroundTransparency = 1, Parent = main })
+    New("UICorner", { CornerRadius = UDim.new(0, layout.Radius), Parent = clip })
+    local progress = New("Frame", {
+        Size = UDim2.new(0, 0, 1, 0), BackgroundTransparency = 0.95, ThemeTag = { BackgroundColor3 = "Text" }, Parent = clip,
+    })
+    if notification.Background then
+        local background = New("ImageLabel", {
+            Name = "Background", Image = notification.Background, BackgroundTransparency = 1,
+            Size = UDim2.fromScale(1, 1), ScaleType = "Crop", ImageTransparency = notification.BackgroundImageTransparency or 0, Parent = main,
         })
+        New("UICorner", { CornerRadius = UDim.new(0, layout.Radius), Parent = background })
     end
-    
-    local Duration = New("Frame", {
-        Size = UDim2.new(0,0,1,0),
-        BackgroundTransparency = .95,
-        ThemeTag = {
-            BackgroundColor3 = "Text",
-        },
-        
-    })
-    
-    local TextContainer = New("Frame", {
-        Size = UDim2.new(1,
-            Notification.Icon and -28-NotificationModule.UIPadding or 0,
-            1,0),
-        Position = UDim2.new(1,0,0,0),
-        AnchorPoint = Vector2.new(1,0),
-        BackgroundTransparency = 1,
-        AutomaticSize = "Y",
-    }, {
-        New("UIPadding", {
-            PaddingTop = UDim.new(0,NotificationModule.UIPadding),
-            PaddingLeft = UDim.new(0,NotificationModule.UIPadding),
-            PaddingRight = UDim.new(0,NotificationModule.UIPadding),
-            PaddingBottom = UDim.new(0,NotificationModule.UIPadding),
-        }),
-        New("TextLabel", {
-            AutomaticSize = "Y",
-            Size = UDim2.new(1,-30-NotificationModule.UIPadding,0,0),
-            TextWrapped = true,
-            TextXAlignment = "Left",
-            RichText = true,
-            BackgroundTransparency = 1,
-            TextSize = 16,
-            ThemeTag = {
-                TextColor3 = "Text"
-            },
-            Text = Notification.Title,
-            FontFace = Font.new(Creator.Font, Enum.FontWeight.Medium)
-        }),
-        New("UIListLayout", {
-            Padding = UDim.new(0,NotificationModule.UIPadding/3)
-        })
-    })
-    
-    if Notification.Content then
-        New("TextLabel", {
-            AutomaticSize = "Y",
-            Size = UDim2.new(1,0,0,0),
-            TextWrapped = true,
-            TextXAlignment = "Left",
-            RichText = true,
-            BackgroundTransparency = 1,
-            TextTransparency = .4,
-            TextSize = 15,
-            ThemeTag = {
-                TextColor3 = "Text"
-            },
-            Text = Notification.Content,
-            FontFace = Font.new(Creator.Font, Enum.FontWeight.Medium),
-            Parent = TextContainer
-        })
+    local icon
+    if notification.Icon then
+        icon = Creator.Image(notification.Icon, "NotificationIcon", 0,
+            config.Window and config.Window.StoragePath, "Notification", notification.IconThemed)
+        icon.Size = UDim2.fromOffset(layout.IconSize, layout.IconSize)
+        icon.Position = UDim2.fromOffset(layout.Padding, layout.Padding)
+        icon.Parent = main
     end
-    
-    
-    local Main = Creator.NewRoundFrame(NotificationModule.UICorner, "Squircle", {
-        Size = UDim2.new(1,0,0,0),
-        Position = UDim2.new(2,0,1,0),
-        AnchorPoint = Vector2.new(0,1),
-        AutomaticSize = "Y",
-        ImageTransparency = .05,
-        ThemeTag = {
-            ImageColor3 = "Background"
-        },
-        
-    }, {
-        New("CanvasGroup", {
-            Size = UDim2.new(1,0,1,0),
-            BackgroundTransparency = 1,
-        }, {
-            Duration,
-            New("UICorner", {
-                CornerRadius = UDim.new(0,NotificationModule.UICorner),
-            })
-    
-        }),
-        New("ImageLabel", {
-            Name = "Background",
-            Image = Notification.Background,
-            BackgroundTransparency = 1,
-            Size = UDim2.new(1,0,1,0),
-            ScaleType = "Crop",
-            ImageTransparency = Notification.BackgroundImageTransparency
-            
-        }, {
-            New("UICorner", {
-                CornerRadius = UDim.new(0,NotificationModule.UICorner),
-            })
-        }),
-        
-        TextContainer,
-        Icon, CloseButton,
+    local text = New("Frame", {
+        Name = "Text", Size = UDim2.new(1, icon and -layout.IconSize - layout.Padding or 0, 0, 0),
+        Position = UDim2.new(1, 0, 0, 0), AnchorPoint = Vector2.new(1, 0), BackgroundTransparency = 1, AutomaticSize = "Y", Parent = main,
     })
-
-    local MainContainer = New("Frame", {
-        BackgroundTransparency = 1,
-        Size = UDim2.new(1,0,0,0),
-        Parent = Config.Holder
-    }, {
-        Main
+    New("UIPadding", {
+        PaddingTop = UDim.new(0, layout.Padding), PaddingBottom = UDim.new(0, layout.Padding),
+        PaddingLeft = UDim.new(0, layout.Padding), PaddingRight = UDim.new(0, layout.Padding), Parent = text,
     })
-    
-    function Notification:Close()
-        if not Notification.Closed then
-            Notification.Closed = true
-            Tween(MainContainer, 0.45, {Size = UDim2.new(1, 0, 0, -8)}, Enum.EasingStyle.Quint, Enum.EasingDirection.Out):Play()
-            Tween(Main, 0.55, {Position = UDim2.new(2,0,1,0)}, Enum.EasingStyle.Quint, Enum.EasingDirection.Out):Play()
-            task.wait(.45)
-            MainContainer:Destroy()
+    New("UIListLayout", { Padding = UDim.new(0, layout.Gap), Parent = text })
+    local function label(name, value, size, weight, parent)
+        local object = New("TextLabel", {
+            Name = name, Text = tostring(value), TextSize = size, FontFace = Font.new(Creator.Font, weight), TextWrapped = true,
+            TextXAlignment = "Left", TextYAlignment = "Top", BackgroundTransparency = 1,
+            Size = UDim2.new(1, 0, 0, 0), AutomaticSize = "Y", ThemeTag = { TextColor3 = "Text" }, Parent = parent,
+        })
+        object.TextSize = size
+        return object
+    end
+    local title = label("Title", notification.Title, layout.TitleSize, Enum.FontWeight.SemiBold, text)
+    title.Size = UDim2.new(1, -22, 0, 0)
+    if Creator.MobileMode then
+        title.TextTruncate = Enum.TextTruncate.AtEnd
+        New("UISizeConstraint", { MaxSize = Vector2.new(100000, layout.TitleSize * 2 + 4), Parent = title })
+    end
+    local body, bodyViewport
+    if notification.Content then
+        if Creator.MobileMode then
+            bodyViewport = New("ScrollingFrame", {
+                Name = "Message", Size = UDim2.new(1, 0, 0, 0), BackgroundTransparency = 1,
+                CanvasSize = UDim2.new(), AutomaticCanvasSize = "Y", ScrollingDirection = "Y",
+                ScrollBarThickness = 0, ScrollBarImageTransparency = 0.5, Parent = text,
+            })
+            body = label("Content", notification.Content, layout.ContentSize, Enum.FontWeight.Regular, bodyViewport)
+            body.Size = UDim2.new(1, -4, 0, 0)
+        else
+            body = label("Content", notification.Content, layout.ContentSize, Enum.FontWeight.Medium, text)
+        end
+        body.TextTransparency = Creator.MobileMode and 0.2 or 0.4
+    end
+    local close = New("ImageButton", {
+        Name = "Close", Image = Creator.Icon("x")[1], ImageRectSize = Creator.Icon("x")[2].ImageRectSize,
+        ImageRectOffset = Creator.Icon("x")[2].ImageRectPosition, BackgroundTransparency = 1, Size = UDim2.fromOffset(14, 14),
+        Position = UDim2.new(1, -layout.Padding, 0, layout.Padding), AnchorPoint = Vector2.new(1, 0),
+        ThemeTag = { ImageColor3 = "Text" }, ImageTransparency = 0.3, Parent = main,
+    })
+    local closeHit = New("TextButton", {
+        Text = "", Size = UDim2.fromOffset(32, 32), BackgroundTransparency = 1,
+        Position = UDim2.fromScale(0.5, 0.5), AnchorPoint = Vector2.new(0.5, 0.5), Parent = close,
+    })
+    notification.UIElements = {
+        Main = main, Container = container, Title = title, Content = body,
+        ContentViewport = bodyViewport, Icon = icon, Close = closeHit, Progress = progress,
+    }
+    local function resizeBody()
+        if disposed or notification.Closed or not bodyViewport then return end
+        layout = getLayout()
+        local titleHeight = math.min(title.AbsoluteSize.Y, layout.TitleSize * 2 + 4)
+        local limit = math.max(layout.ContentSize + 3, layout.MaxHeight - layout.Padding * 2 - titleHeight - layout.Gap)
+        local minimum = body.TextBounds.Y + 2
+        local size = UDim2.new(1, -4, 0, minimum)
+        if body.Size ~= size then body.Size = size end
+        local height = math.max(body.AbsoluteSize.Y, minimum)
+        bodyViewport.Size = UDim2.new(1, 0, 0, math.min(height, limit))
+        bodyViewport.ScrollBarThickness = height > limit + 1 and 2 or 0
+    end
+    local function resizeContainer()
+        if disposed or notification.Closed or not opened then return end
+        local height = math.ceil(math.max(text.AbsoluteSize.Y, icon and layout.IconSize + layout.Padding * 2 or 0))
+        local size = UDim2.new(1, 0, 0, height)
+        if main.Size ~= size then main.Size = size end
+        if sizeTween then sizeTween:Cancel() end
+        sizeTween = Tween(container, 0.12, { Size = size })
+        sizeTween:Play()
+    end
+    local function dispose()
+        if disposed then return end
+        disposed = true
+        notification.Closed = true
+        NotificationModule.Notifications[index] = nil
+        if timer then task.cancel(timer); timer = nil end
+        if sizeTween then sizeTween:Cancel() end
+        for _, connection in ipairs(connections) do
+            connection:Disconnect()
+            local tracked = table.find(Creator.Signals, connection)
+            if tracked then table.remove(Creator.Signals, tracked) end
+        end
+        table.clear(connections)
+        for object in pairs(Creator.Objects) do
+            if object == container or object:IsDescendantOf(container) then Creator.Objects[object] = nil end
+        end
+        for position = #Creator.FontObjects, 1, -1 do
+            if Creator.FontObjects[position]:IsDescendantOf(container) then table.remove(Creator.FontObjects, position) end
         end
     end
-    
-    task.spawn(function()
-        task.wait()
-        Tween(MainContainer, 0.45, {Size = UDim2.new(
-            1,
-            0,
-            0,
-            Main.AbsoluteSize.Y
-        )}, Enum.EasingStyle.Quint, Enum.EasingDirection.Out):Play()
-        Tween(Main, 0.45, {Position = UDim2.new(0,0,1,0)}, Enum.EasingStyle.Quint, Enum.EasingDirection.Out):Play()
-        if Notification.Duration then
-            Tween(Duration, Notification.Duration, {Size = UDim2.new(1,0,1,0)}, Enum.EasingStyle.Linear,Enum.EasingDirection.InOut):Play()
-            task.wait(Notification.Duration)
-            Notification:Close()
-        end
+    function notification:Close()
+        if self.Closed or disposed then return end
+        self.Closed = true
+        if timer then task.cancel(timer); timer = nil end
+        if sizeTween then sizeTween:Cancel() end
+        Tween(container, layout.Animation, { Size = UDim2.new(1, 0, 0, 0) }):Play()
+        Tween(main, layout.Animation, { Position = UDim2.new(2, 0, 1, 0) }, Enum.EasingStyle.Quint, Enum.EasingDirection.Out):Play()
+        task.delay(layout.Animation, function() if not disposed then dispose(); container:Destroy() end end)
+    end
+    connect(container.Destroying, dispose)
+    connect(closeHit.Activated, function() notification:Close() end)
+    connect(text:GetPropertyChangedSignal("AbsoluteSize"), resizeContainer)
+    if bodyViewport then
+        connect(body:GetPropertyChangedSignal("AbsoluteSize"), resizeBody)
+        connect(body:GetPropertyChangedSignal("TextBounds"), resizeBody)
+        connect(title:GetPropertyChangedSignal("AbsoluteSize"), resizeBody)
+        connect(holder:GetPropertyChangedSignal("AbsoluteSize"), resizeBody)
+    end
+    task.defer(function()
+        if disposed or notification.Closed then return end
+        resizeBody()
+        opened = true
+        resizeContainer()
+        Tween(main, layout.Animation, { Position = UDim2.new(0, 0, 1, 0) }, Enum.EasingStyle.Quint, Enum.EasingDirection.Out):Play()
+        Tween(progress, notification.Duration, { Size = UDim2.fromScale(1, 1) }, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut):Play()
+        timer = task.delay(notification.Duration, function() timer = nil; notification:Close() end)
     end)
-    
-    if CloseButton then
-        Creator.AddSignal(CloseButton.TextButton.MouseButton1Click, function()
-            Notification:Close()
-        end)
-    end
-    
-    
-    return Notification
+    trim(holder, layout.MaxVisible)
+    return notification
 end
 
-return NotificationModule end function __DARKLUA_BUNDLE_MODULES.o()
+return NotificationModule
+end function __DARKLUA_BUNDLE_MODULES.p()
 
 
 
@@ -25884,7 +25843,7 @@ end
 end
 
 
-return Platoboost end function __DARKLUA_BUNDLE_MODULES.p()
+return Platoboost end function __DARKLUA_BUNDLE_MODULES.q()
 
 
 
@@ -25956,7 +25915,7 @@ function PandaDevelopment.New(serviceId)
     }
 end
 
-return PandaDevelopment end function __DARKLUA_BUNDLE_MODULES.q()
+return PandaDevelopment end function __DARKLUA_BUNDLE_MODULES.r()
 
 
 
@@ -26007,7 +25966,7 @@ function Luarmor.New(scriptId, discord)
 end
 
 
-return Luarmor end function __DARKLUA_BUNDLE_MODULES.r()
+return Luarmor end function __DARKLUA_BUNDLE_MODULES.s()
 return {
     platoboost = {
         Name = "Platoboost",
@@ -26015,7 +25974,7 @@ return {
         Args = {"ServiceId", "Secret"},
         
         
-        New = __DARKLUA_BUNDLE_MODULES.load('o').New
+        New = __DARKLUA_BUNDLE_MODULES.load('p').New
     },
     pandadevelopment = {
         Name = "Panda Development",
@@ -26023,7 +25982,7 @@ return {
         Args = {"ServiceId"},
         
         
-        New = __DARKLUA_BUNDLE_MODULES.load('p').New
+        New = __DARKLUA_BUNDLE_MODULES.load('q').New
     },
     luarmor = {
         Name = "Luarmor",
@@ -26031,10 +25990,10 @@ return {
         Args = {"ScriptId", "Discord"},
         
         
-        New = __DARKLUA_BUNDLE_MODULES.load('q').New
+        New = __DARKLUA_BUNDLE_MODULES.load('r').New
     },
     
-}end function __DARKLUA_BUNDLE_MODULES.s()
+}end function __DARKLUA_BUNDLE_MODULES.t()
 local Storage = __DARKLUA_BUNDLE_MODULES.load('i')
 local Preferences = {}
 
@@ -26131,7 +26090,7 @@ function Preferences.Attach(window, library, config, state, hadSaved, path)
 end
 
 return Preferences
-end function __DARKLUA_BUNDLE_MODULES.t()
+end function __DARKLUA_BUNDLE_MODULES.u()
 local environment = (getgenv and getgenv()) or _G
 environment.__VibeUIWindows = environment.__VibeUIWindows or {}
 local windows = environment.__VibeUIWindows
@@ -26157,7 +26116,7 @@ function Runtime.Register(path, window)
 end
 
 return Runtime
-end function __DARKLUA_BUNDLE_MODULES.u()
+end function __DARKLUA_BUNDLE_MODULES.v()
 return function(options)
     local config = table.clone(options or {})
     config.Title = config.Title or config.Name
@@ -26199,7 +26158,7 @@ return function(options)
     end
     return config
 end
-end function __DARKLUA_BUNDLE_MODULES.v()
+end function __DARKLUA_BUNDLE_MODULES.w()
 
 return [==[
 {
@@ -26242,7 +26201,7 @@ return [==[
   }
 }
 ]==]
-end function __DARKLUA_BUNDLE_MODULES.w()
+end function __DARKLUA_BUNDLE_MODULES.x()
 local Button = {}
 
 local Creator = __DARKLUA_BUNDLE_MODULES.load('l')
@@ -26386,7 +26345,7 @@ function Button.New(Title, Icon, Callback, Variant, Parent, Dialog, FullRounded,
 end
 
 
-return Button end function __DARKLUA_BUNDLE_MODULES.x()
+return Button end function __DARKLUA_BUNDLE_MODULES.y()
 local Input = {}
 
 local Creator = __DARKLUA_BUNDLE_MODULES.load('l')
@@ -26520,7 +26479,7 @@ function Input.New(Placeholder, Icon, Parent, Type, Callback, OnChange, Radius, 
 end
 
 
-return Input end function __DARKLUA_BUNDLE_MODULES.y()
+return Input end function __DARKLUA_BUNDLE_MODULES.z()
 local Creator = __DARKLUA_BUNDLE_MODULES.load('l')
 local New = Creator.New
 local Tween = Creator.Tween
@@ -26675,7 +26634,7 @@ function DialogModule.Create(Key)
     return Dialog
 end
 
-return DialogModule end function __DARKLUA_BUNDLE_MODULES.z()
+return DialogModule end function __DARKLUA_BUNDLE_MODULES.A()
 local KeySystem = {}
 
 
@@ -26683,11 +26642,11 @@ local Creator = __DARKLUA_BUNDLE_MODULES.load('l')
 local New = Creator.New
 local Tween = Creator.Tween
 
-local CreateButton = __DARKLUA_BUNDLE_MODULES.load('w').New
-local CreateInput = __DARKLUA_BUNDLE_MODULES.load('x').New
+local CreateButton = __DARKLUA_BUNDLE_MODULES.load('x').New
+local CreateInput = __DARKLUA_BUNDLE_MODULES.load('y').New
 
 function KeySystem.new(Config, Filename, func)
-    local KeyDialogInit = __DARKLUA_BUNDLE_MODULES.load('y').Init(nil, Config.WindUI.ScreenGui.KeySystem)
+    local KeyDialogInit = __DARKLUA_BUNDLE_MODULES.load('z').Init(nil, Config.WindUI.ScreenGui.KeySystem)
     local KeyDialog = KeyDialogInit.Create(true)
     
     local Services = {}
@@ -27077,7 +27036,7 @@ function KeySystem.new(Config, Filename, func)
                 Creator.AddSignal(APIFrame.MouseEnter, function()
                     Tween(APIFrame, 0.08, { ImageTransparency = .95 }):Play()
                 end)
-                Creator.AddSignal(APIFrame.InputEnded, function()
+                Creator.AddSignal(APIFrame.MouseLeave, function()
                     Tween(APIFrame, 0.08, { ImageTransparency = 1 }):Play()
                 end)
                 Creator.AddSignal(APIFrame.MouseButton1Click, function()
@@ -27167,7 +27126,8 @@ function KeySystem.new(Config, Filename, func)
     KeyDialog:Open()
 end
 
-return KeySystem end function __DARKLUA_BUNDLE_MODULES.A()
+return KeySystem
+end function __DARKLUA_BUNDLE_MODULES.B()
 
 
 local function map(value, inMin, inMax, outMin, outMax)
@@ -27185,14 +27145,14 @@ local function getOffset()
 end
 
 return { viewportPointToWorld, getOffset }
-end function __DARKLUA_BUNDLE_MODULES.B()
+end function __DARKLUA_BUNDLE_MODULES.C()
 
 
 local Creator = __DARKLUA_BUNDLE_MODULES.load('l')
 local New = Creator.New
 
 
-local viewportPointToWorld, getOffset = unpack(__DARKLUA_BUNDLE_MODULES.load('A'))
+local viewportPointToWorld, getOffset = unpack(__DARKLUA_BUNDLE_MODULES.load('B'))
 local BlurFolder = Instance.new("Folder", game:GetService("Workspace").CurrentCamera)
 
 
@@ -27329,11 +27289,11 @@ return function(distance)
 
 	return Blur
 end
-end function __DARKLUA_BUNDLE_MODULES.C()
+end function __DARKLUA_BUNDLE_MODULES.D()
 
 
 local Creator = __DARKLUA_BUNDLE_MODULES.load('l')
-local AcrylicBlur = __DARKLUA_BUNDLE_MODULES.load('B')
+local AcrylicBlur = __DARKLUA_BUNDLE_MODULES.load('C')
 
 local New = Creator.New
 
@@ -27454,13 +27414,13 @@ return function(props)
 
 	return AcrylicPaint, Blur
 end
-end function __DARKLUA_BUNDLE_MODULES.D()
+end function __DARKLUA_BUNDLE_MODULES.E()
 
 
 local Acrylic = {
-	AcrylicBlur = __DARKLUA_BUNDLE_MODULES.load('B'),
+	AcrylicBlur = __DARKLUA_BUNDLE_MODULES.load('C'),
 	
-	AcrylicPaint = __DARKLUA_BUNDLE_MODULES.load('C'),
+	AcrylicPaint = __DARKLUA_BUNDLE_MODULES.load('D'),
 }
 
 function Acrylic.init()
@@ -27508,7 +27468,7 @@ function Acrylic.init()
 end
 
 return Acrylic
-end function __DARKLUA_BUNDLE_MODULES.E()
+end function __DARKLUA_BUNDLE_MODULES.F()
 local PopupModule = {}
 
 local Creator = __DARKLUA_BUNDLE_MODULES.load('l')
@@ -27528,7 +27488,7 @@ function PopupModule.new(PopupConfig)
         IconSize = 22,
     }
     
-    local DialogInit = __DARKLUA_BUNDLE_MODULES.load('y').Init(nil, PopupConfig.WindUI.ScreenGui.Popups)
+    local DialogInit = __DARKLUA_BUNDLE_MODULES.load('z').Init(nil, PopupConfig.WindUI.ScreenGui.Popups)
     local Dialog = DialogInit.Create(true)
     
     local ThumbnailSize = 200
@@ -27688,7 +27648,7 @@ function PopupModule.new(PopupConfig)
         }),
     })
 
-    local CreateButton = __DARKLUA_BUNDLE_MODULES.load('w').New
+    local CreateButton = __DARKLUA_BUNDLE_MODULES.load('x').New
     
     for _, values in next, Popup.Buttons do
         CreateButton(values.Title, values.Icon, values.Callback, values.Variant, ButtonsContainer, Dialog)
@@ -27700,7 +27660,7 @@ function PopupModule.new(PopupConfig)
     return Popup
 end
 
-return PopupModule end function __DARKLUA_BUNDLE_MODULES.F()
+return PopupModule end function __DARKLUA_BUNDLE_MODULES.G()
 return {
     {
         Name = "Ocean Blue",
@@ -28143,7 +28103,7 @@ return {
         ShortcutDesc = "#771111",
     },
 }
-end function __DARKLUA_BUNDLE_MODULES.G()
+end function __DARKLUA_BUNDLE_MODULES.H()
 
 local function makeTheme(name, background, accent)
     return {
@@ -28184,9 +28144,9 @@ return {
     Midnight = makeTheme("Vibe Midnight", "#0D0914", "#181120"),
     Violet = makeTheme("Vibe Violet", "#160C23", "#29153D"),
 }
-end function __DARKLUA_BUNDLE_MODULES.H()
-local Presets = __DARKLUA_BUNDLE_MODULES.load('F')
-local VibeThemes = __DARKLUA_BUNDLE_MODULES.load('G')
+end function __DARKLUA_BUNDLE_MODULES.I()
+local Presets = __DARKLUA_BUNDLE_MODULES.load('G')
+local VibeThemes = __DARKLUA_BUNDLE_MODULES.load('H')
 return function(WindUI)
     local themes = {
         ["Vibe Midnight"] = VibeThemes.Midnight,
@@ -28413,7 +28373,7 @@ return function(WindUI)
     for _, theme in ipairs(Presets) do themes[theme.Name] = theme end
     return themes
 end
-end function __DARKLUA_BUNDLE_MODULES.I()
+end function __DARKLUA_BUNDLE_MODULES.J()
 local Label = {}
 
 local Creator = __DARKLUA_BUNDLE_MODULES.load('l')
@@ -28513,7 +28473,7 @@ function Label.New(Text, Icon, Parent, IsPlaceholder, Radius)
 end
 
 
-return Label end function __DARKLUA_BUNDLE_MODULES.J()
+return Label end function __DARKLUA_BUNDLE_MODULES.K()
 local ScrollSlider = {}
 
 local UserInputService = game:GetService("UserInputService")
@@ -28686,7 +28646,7 @@ function ScrollSlider.New(ScrollingFrame, Parent, Window, Thickness)
 end
 
 
-return ScrollSlider end function __DARKLUA_BUNDLE_MODULES.K()
+return ScrollSlider end function __DARKLUA_BUNDLE_MODULES.L()
 local Tag = {}
 
 
@@ -28836,7 +28796,7 @@ function Tag:New(TagConfig, Parent)
 end
 
 
-return Tag end function __DARKLUA_BUNDLE_MODULES.L()
+return Tag end function __DARKLUA_BUNDLE_MODULES.M()
 local Creator = __DARKLUA_BUNDLE_MODULES.load('l')
 local HttpService = game:GetService("HttpService")
 local Storage = __DARKLUA_BUNDLE_MODULES.load('i')
@@ -29144,7 +29104,7 @@ function ConfigManager:GetConfig(configName)
 end
 
 return ConfigManager
-end function __DARKLUA_BUNDLE_MODULES.M()
+end function __DARKLUA_BUNDLE_MODULES.N()
 local OpenButton = {}
 
 local Creator = __DARKLUA_BUNDLE_MODULES.load('l')
@@ -29414,7 +29374,7 @@ end
 
 
 
-return OpenButton end function __DARKLUA_BUNDLE_MODULES.N()
+return OpenButton end function __DARKLUA_BUNDLE_MODULES.O()
 local ToolTip = {}
 
 local Creator = __DARKLUA_BUNDLE_MODULES.load('l')
@@ -29555,7 +29515,7 @@ end
 
 
 
-return ToolTip end function __DARKLUA_BUNDLE_MODULES.O()
+return ToolTip end function __DARKLUA_BUNDLE_MODULES.P()
 local Text = __DARKLUA_BUNDLE_MODULES.load('a')
 local Creator = __DARKLUA_BUNDLE_MODULES.load('l')
 local New = Creator.New
@@ -29945,16 +29905,23 @@ return function(Config)
     Element.UIElements.Main = Main
     Element.UIElements.Locked = Locked
     
+    local hoverTween
+    local function updateHover()
+        if not Element.Hover or not Main.Parent then return end
+        if hoverTween then hoverTween:Cancel() end
+        local transparency = CanHover and Hovering and (Element.Color and .15 or .9)
+            or (Element.Color and .05 or .93)
+        hoverTween = Tween(Main, .05, { ImageTransparency = transparency })
+        hoverTween:Play()
+    end
     if Element.Hover then
         Creator.AddSignal(Main.MouseEnter, function()
-            if CanHover then
-                Tween(Main, .05, {ImageTransparency = Element.Color and .15 or .9}):Play()
-            end
+            Hovering = true
+            updateHover()
         end)
-        Creator.AddSignal(Main.InputEnded, function()
-            if CanHover then
-                Tween(Main, .05, {ImageTransparency = Element.Color and .05 or .93}):Play()
-            end
+        Creator.AddSignal(Main.MouseLeave, function()
+            Hovering = false
+            updateHover()
         end)
     end
     
@@ -30131,12 +30098,14 @@ return function(Config)
     
     function Element:Lock()
         CanHover = false
+        updateHover()
         Locked.Active = true
         Locked.Visible = true
     end
     
     function Element:Unlock()
         CanHover = true
+        updateHover()
         Locked.Active = false
         Locked.Visible = false
     end
@@ -30218,13 +30187,13 @@ return function(Config)
     
     return Element
 end
-end function __DARKLUA_BUNDLE_MODULES.P()
+end function __DARKLUA_BUNDLE_MODULES.Q()
 local Creator = __DARKLUA_BUNDLE_MODULES.load('l')
 local New = Creator.New
 
 local Element = {}
 
-local CreateButton = __DARKLUA_BUNDLE_MODULES.load('w').New
+local CreateButton = __DARKLUA_BUNDLE_MODULES.load('x').New
 
 function Element:New(ElementConfig)
     ElementConfig.Hover = false  
@@ -30238,7 +30207,7 @@ function Element:New(ElementConfig)
         
         Locked = ElementConfig.Locked or false,  
     }  
-    local Paragraph = __DARKLUA_BUNDLE_MODULES.load('O')(ElementConfig)  
+    local Paragraph = __DARKLUA_BUNDLE_MODULES.load('P')(ElementConfig)  
       
     ParagraphModule.ParagraphFrame = Paragraph  
     if ElementConfig.Buttons and #ElementConfig.Buttons > 0 then  
@@ -30266,7 +30235,7 @@ function Element:New(ElementConfig)
     
 end
 
-return Element end function __DARKLUA_BUNDLE_MODULES.Q()
+return Element end function __DARKLUA_BUNDLE_MODULES.R()
 local Creator = __DARKLUA_BUNDLE_MODULES.load('l')
 local New = Creator.New
 
@@ -30289,7 +30258,7 @@ function Element:New(Config)
     
     local CanCallback = true
     
-    Button.ButtonFrame = __DARKLUA_BUNDLE_MODULES.load('O')({
+    Button.ButtonFrame = __DARKLUA_BUNDLE_MODULES.load('P')({
         Title = Button.Title,
         Desc = Button.Desc,
         Parent = Config.Parent,
@@ -30364,7 +30333,7 @@ function Element:New(Config)
     return Button.__type, Button
 end
 
-return Element end function __DARKLUA_BUNDLE_MODULES.R()
+return Element end function __DARKLUA_BUNDLE_MODULES.S()
 local Toggle = {}
 
 local Creator = __DARKLUA_BUNDLE_MODULES.load('l')
@@ -30492,7 +30461,7 @@ function Toggle.New(Value, Icon, Parent, Callback)
 end
 
 
-return Toggle end function __DARKLUA_BUNDLE_MODULES.S()
+return Toggle end function __DARKLUA_BUNDLE_MODULES.T()
 local Checkbox = {}
 
 local Creator = __DARKLUA_BUNDLE_MODULES.load('l')
@@ -30586,13 +30555,13 @@ function Checkbox.New(Value, Icon, Parent, Callback)
 end
 
 
-return Checkbox end function __DARKLUA_BUNDLE_MODULES.T()
+return Checkbox end function __DARKLUA_BUNDLE_MODULES.U()
 local Creator = __DARKLUA_BUNDLE_MODULES.load('l')
 local New = Creator.New
 local Tween = Creator.Tween
 
-local CreateToggle = __DARKLUA_BUNDLE_MODULES.load('R').New
-local CreateCheckbox = __DARKLUA_BUNDLE_MODULES.load('S').New
+local CreateToggle = __DARKLUA_BUNDLE_MODULES.load('S').New
+local CreateCheckbox = __DARKLUA_BUNDLE_MODULES.load('T').New
 
 local Element = {}
 
@@ -30608,7 +30577,7 @@ function Element:New(Config)
         Callback = Config.Callback or function() end,
         UIElements = {}
     }
-    Toggle.ToggleFrame = __DARKLUA_BUNDLE_MODULES.load('O')({
+    Toggle.ToggleFrame = __DARKLUA_BUNDLE_MODULES.load('P')({
         Title = Toggle.Title,
         Desc = Toggle.Desc,
         
@@ -30678,7 +30647,7 @@ function Element:New(Config)
     return Toggle.__type, Toggle
 end
 
-return Element end function __DARKLUA_BUNDLE_MODULES.U()
+return Element end function __DARKLUA_BUNDLE_MODULES.V()
 local Creator = __DARKLUA_BUNDLE_MODULES.load('l')
 local New = Creator.New
 local Tween = Creator.Tween
@@ -30736,7 +30705,7 @@ function Element:New(Config)
         end
     end
     
-    Slider.SliderFrame = __DARKLUA_BUNDLE_MODULES.load('O')({
+    Slider.SliderFrame = __DARKLUA_BUNDLE_MODULES.load('P')({
         Title = Slider.Title,
         Desc = Slider.Desc,
         Parent = Config.Parent,
@@ -30939,11 +30908,11 @@ function Element:New(Config)
 end
 
 return Element
-end function __DARKLUA_BUNDLE_MODULES.V()
+end function __DARKLUA_BUNDLE_MODULES.W()
 local UserInputService = game:GetService("UserInputService")
 local Creator = __DARKLUA_BUNDLE_MODULES.load('l')
 local New = Creator.New
-local CreateLabel = __DARKLUA_BUNDLE_MODULES.load('I').New
+local CreateLabel = __DARKLUA_BUNDLE_MODULES.load('J').New
 
 local Element = { UICorner = 6, UIPadding = 8 }
 
@@ -30961,7 +30930,7 @@ function Element:New(Config)
     }
     local CanCallback = true
     local PendingKey
-    Keybind.KeybindFrame = __DARKLUA_BUNDLE_MODULES.load('O')({
+    Keybind.KeybindFrame = __DARKLUA_BUNDLE_MODULES.load('P')({
         Title = Keybind.Title, Desc = Keybind.Desc, Parent = Config.Parent,
         TextOffset = 85, Hover = Keybind.CanChange, Tab = Config.Tab,
         Index = Config.Index, Window = Config.Window, ElementTable = Keybind,
@@ -31048,7 +31017,7 @@ function Element:New(Config)
 end
 
 return Element
-end function __DARKLUA_BUNDLE_MODULES.W()
+end function __DARKLUA_BUNDLE_MODULES.X()
 local Creator = __DARKLUA_BUNDLE_MODULES.load('l')
 local New = Creator.New
 local Tween = Creator.Tween
@@ -31059,8 +31028,8 @@ local Element = {
 }
 
 
-local CreateButton = __DARKLUA_BUNDLE_MODULES.load('w').New
-local CreateInput = __DARKLUA_BUNDLE_MODULES.load('x').New
+local CreateButton = __DARKLUA_BUNDLE_MODULES.load('x').New
+local CreateInput = __DARKLUA_BUNDLE_MODULES.load('y').New
 
 function Element:New(Config)
     local Input = {
@@ -31081,7 +31050,7 @@ function Element:New(Config)
     
     local CanCallback = true
 
-    Input.InputFrame = __DARKLUA_BUNDLE_MODULES.load('O')({
+    Input.InputFrame = __DARKLUA_BUNDLE_MODULES.load('P')({
         Title = Input.Title,
         Desc = Input.Desc,
         Parent = Config.Parent,
@@ -31159,7 +31128,7 @@ function Element:New(Config)
 end
 
 return Element
-end function __DARKLUA_BUNDLE_MODULES.X()
+end function __DARKLUA_BUNDLE_MODULES.Y()
 local DropdownMenu = {}
 
 local UserInputService = game:GetService("UserInputService")
@@ -31168,7 +31137,7 @@ local Camera = game:GetService("Workspace").CurrentCamera
 
 local CurrentCamera = workspace.CurrentCamera
 
-local CreateInput = __DARKLUA_BUNDLE_MODULES.load('x').New
+local CreateInput = __DARKLUA_BUNDLE_MODULES.load('y').New
 
 
 local Creator = __DARKLUA_BUNDLE_MODULES.load('l')
@@ -31677,7 +31646,7 @@ function DropdownMenu.New(Config, Dropdown, Element, CanCallback, Type)
 end
 
 
-return DropdownMenu end function __DARKLUA_BUNDLE_MODULES.Y()
+return DropdownMenu end function __DARKLUA_BUNDLE_MODULES.Z()
 local UserInputService = game:GetService("UserInputService")
 local Mouse = game:GetService("Players").LocalPlayer:GetMouse()
 local Camera = game:GetService("Workspace").CurrentCamera
@@ -31686,9 +31655,9 @@ local Creator = __DARKLUA_BUNDLE_MODULES.load('l')
 local New = Creator.New
 local Tween = Creator.Tween
 
-local CreateLabel = __DARKLUA_BUNDLE_MODULES.load('I').New
-local CreateInput = __DARKLUA_BUNDLE_MODULES.load('x').New
-local CreateDropdown = __DARKLUA_BUNDLE_MODULES.load('X').New
+local CreateLabel = __DARKLUA_BUNDLE_MODULES.load('J').New
+local CreateInput = __DARKLUA_BUNDLE_MODULES.load('y').New
+local CreateDropdown = __DARKLUA_BUNDLE_MODULES.load('Y').New
 
 local CurrentCamera = workspace.CurrentCamera
 
@@ -31730,7 +31699,7 @@ function Element:New(Config)
     
     local CanCallback = true
     
-    Dropdown.DropdownFrame = __DARKLUA_BUNDLE_MODULES.load('O')({
+    Dropdown.DropdownFrame = __DARKLUA_BUNDLE_MODULES.load('P')({
         Title = Dropdown.Title,
         Desc = Dropdown.Desc,
         Parent = Config.Parent,
@@ -31798,7 +31767,7 @@ function Element:New(Config)
     return Dropdown.__type, Dropdown
 end
 
-return Element end function __DARKLUA_BUNDLE_MODULES.Z()
+return Element end function __DARKLUA_BUNDLE_MODULES._()
 
 
 
@@ -31970,14 +31939,14 @@ function highlighter.run(source)
 	return table.concat(highlighted)
 end
 
-return highlighter end function __DARKLUA_BUNDLE_MODULES._()
+return highlighter end function __DARKLUA_BUNDLE_MODULES.aa()
 local Code = {}
 
 local Creator = __DARKLUA_BUNDLE_MODULES.load('l')
 local New = Creator.New
 local Tween = Creator.Tween
 
-local Highlighter = __DARKLUA_BUNDLE_MODULES.load('Z')
+local Highlighter = __DARKLUA_BUNDLE_MODULES.load('_')
 
 function Code.New(Code, Title, Parent, Callback, UIScale)
     local CodeModule = {
@@ -32061,7 +32030,7 @@ function Code.New(Code, Title, Parent, Callback, UIScale)
         Tween(CopyButton.Button, .05, {ImageTransparency = .95}):Play()
         Tween(CopyButton.Button.UIScale, .05, {Scale = .9}):Play()
     end)
-    Creator.AddSignal(CopyButton.InputEnded, function()
+    Creator.AddSignal(CopyButton.MouseLeave, function()
         Tween(CopyButton.Button, .08, {ImageTransparency = 1}):Play()
         Tween(CopyButton.Button.UIScale, .08, {Scale = 1}):Play()
     end)
@@ -32180,12 +32149,13 @@ function Code.New(Code, Title, Parent, Callback, UIScale)
 end
 
 
-return Code end function __DARKLUA_BUNDLE_MODULES.aa()
+return Code
+end function __DARKLUA_BUNDLE_MODULES.ab()
 local Creator = __DARKLUA_BUNDLE_MODULES.load('l')
 local New = Creator.New
 
 
-local CodeComponent = __DARKLUA_BUNDLE_MODULES.load('_')
+local CodeComponent = __DARKLUA_BUNDLE_MODULES.load('aa')
 
 local Element = {}
 
@@ -32242,7 +32212,7 @@ function Element:New(Config)
     return Code.__type, Code
 end
 
-return Element end function __DARKLUA_BUNDLE_MODULES.ab()
+return Element end function __DARKLUA_BUNDLE_MODULES.ac()
 local Creator = __DARKLUA_BUNDLE_MODULES.load('l')
 local New = Creator.New
 local Tween = Creator.Tween
@@ -32256,8 +32226,8 @@ local RenderStepped = RunService.RenderStepped
 local LocalPlayer = Players.LocalPlayer
 local Mouse = LocalPlayer:GetMouse()
 
-local CreateButton = __DARKLUA_BUNDLE_MODULES.load('w').New
-local CreateInput = __DARKLUA_BUNDLE_MODULES.load('x').New
+local CreateButton = __DARKLUA_BUNDLE_MODULES.load('x').New
+local CreateInput = __DARKLUA_BUNDLE_MODULES.load('y').New
 
 local Element = {
     UICorner = 8,
@@ -32286,7 +32256,7 @@ function Element:Colorpicker(Config, Window, OnApply)
 
 	Colorpicker:SetHSVFromRGB(Colorpicker.Default)
     
-    local ColorpickerModule = __DARKLUA_BUNDLE_MODULES.load('y').Init(Window)
+    local ColorpickerModule = __DARKLUA_BUNDLE_MODULES.load('z').Init(Window)
     local ColorpickerFrame = ColorpickerModule.Create()
     
     Colorpicker.ColorpickerFrame = ColorpickerFrame
@@ -32890,7 +32860,7 @@ function Element:New(Config)
     
     if Config.Window.NewElements then Element.UICorner = 14 end
     
-    Colorpicker.ColorpickerFrame = __DARKLUA_BUNDLE_MODULES.load('O')({
+    Colorpicker.ColorpickerFrame = __DARKLUA_BUNDLE_MODULES.load('P')({
         Title = Colorpicker.Title,
         Desc = Colorpicker.Desc,
         Parent = Config.Parent,
@@ -32957,7 +32927,7 @@ function Element:New(Config)
     return Colorpicker.__type, Colorpicker
 end
 
-return Element end function __DARKLUA_BUNDLE_MODULES.ac()
+return Element end function __DARKLUA_BUNDLE_MODULES.ad()
 local Creator = __DARKLUA_BUNDLE_MODULES.load('l')
 local New = Creator.New
 local Tween = Creator.Tween
@@ -33210,7 +33180,7 @@ function Element:New(Config)
     return Section.__type, Section
 end
 
-return Element end function __DARKLUA_BUNDLE_MODULES.ad()
+return Element end function __DARKLUA_BUNDLE_MODULES.ae()
 local Creator = __DARKLUA_BUNDLE_MODULES.load('l')
 local New = Creator.New
 
@@ -33237,7 +33207,7 @@ function Element:New(Config)
     return "Divider", { __type = "Divider", ElementFrame = MainDivider }
 end
 
-return Element end function __DARKLUA_BUNDLE_MODULES.ae()
+return Element end function __DARKLUA_BUNDLE_MODULES.af()
 local Creator = __DARKLUA_BUNDLE_MODULES.load('l')
 local New = Creator.New
 
@@ -33253,7 +33223,7 @@ function Element:New(Config)
     return "Space", { __type = "Space", ElementFrame = MainSpace}
 end
 
-return Element end function __DARKLUA_BUNDLE_MODULES.af()
+return Element end function __DARKLUA_BUNDLE_MODULES.ag()
 local Creator = __DARKLUA_BUNDLE_MODULES.load('l')
 local New = Creator.New
 
@@ -33320,7 +33290,7 @@ function Element:New(Config)
     return ImageModule.__type, ImageModule
 end
 
-return Element end function __DARKLUA_BUNDLE_MODULES.ag()
+return Element end function __DARKLUA_BUNDLE_MODULES.ah()
 local Text = __DARKLUA_BUNDLE_MODULES.load('a')
 local Creator = __DARKLUA_BUNDLE_MODULES.load('l')
 local New = Creator.New
@@ -33695,7 +33665,7 @@ function Element:New(Config)
 end
 
 return Element
-end function __DARKLUA_BUNDLE_MODULES.ah()
+end function __DARKLUA_BUNDLE_MODULES.ai()
 local Creator = __DARKLUA_BUNDLE_MODULES.load('l')
 local New = Creator.New
 
@@ -34025,24 +33995,24 @@ function Element:New(Config)
 end
 
 return Element
-end function __DARKLUA_BUNDLE_MODULES.ai()
+end function __DARKLUA_BUNDLE_MODULES.aj()
 return {
     Elements = {
-        Paragraph   = __DARKLUA_BUNDLE_MODULES.load('P'),
-        Button      = __DARKLUA_BUNDLE_MODULES.load('Q'),
-        Toggle      = __DARKLUA_BUNDLE_MODULES.load('T'),
-        Slider      = __DARKLUA_BUNDLE_MODULES.load('U'),
-        Keybind     = __DARKLUA_BUNDLE_MODULES.load('V'),
-        Input       = __DARKLUA_BUNDLE_MODULES.load('W'),
-        Dropdown    = __DARKLUA_BUNDLE_MODULES.load('Y'),
-        Code        = __DARKLUA_BUNDLE_MODULES.load('aa'),
-        Colorpicker = __DARKLUA_BUNDLE_MODULES.load('ab'),
-        Section     = __DARKLUA_BUNDLE_MODULES.load('ac'),
-        Divider     = __DARKLUA_BUNDLE_MODULES.load('ad'),
-        Space       = __DARKLUA_BUNDLE_MODULES.load('ae'),
-        Image       = __DARKLUA_BUNDLE_MODULES.load('af'),
-        Header      = __DARKLUA_BUNDLE_MODULES.load('ag'),
-        QuickAccess = __DARKLUA_BUNDLE_MODULES.load('ah'),
+        Paragraph   = __DARKLUA_BUNDLE_MODULES.load('Q'),
+        Button      = __DARKLUA_BUNDLE_MODULES.load('R'),
+        Toggle      = __DARKLUA_BUNDLE_MODULES.load('U'),
+        Slider      = __DARKLUA_BUNDLE_MODULES.load('V'),
+        Keybind     = __DARKLUA_BUNDLE_MODULES.load('W'),
+        Input       = __DARKLUA_BUNDLE_MODULES.load('X'),
+        Dropdown    = __DARKLUA_BUNDLE_MODULES.load('Z'),
+        Code        = __DARKLUA_BUNDLE_MODULES.load('ab'),
+        Colorpicker = __DARKLUA_BUNDLE_MODULES.load('ac'),
+        Section     = __DARKLUA_BUNDLE_MODULES.load('ad'),
+        Divider     = __DARKLUA_BUNDLE_MODULES.load('ae'),
+        Space       = __DARKLUA_BUNDLE_MODULES.load('af'),
+        Image       = __DARKLUA_BUNDLE_MODULES.load('ag'),
+        Header      = __DARKLUA_BUNDLE_MODULES.load('ah'),
+        QuickAccess = __DARKLUA_BUNDLE_MODULES.load('ai'),
     },
     Load = function(tbl, Container, Elements, Window, WindUI, OnElementCreateFunction, ElementsModule, UIScale, Tab)
         for name, module in next, Elements do
@@ -34166,7 +34136,7 @@ return {
     end,
     
 }
-end function __DARKLUA_BUNDLE_MODULES.aj()
+end function __DARKLUA_BUNDLE_MODULES.ak()
 local HttpService = game:GetService("HttpService")
 local Storage = __DARKLUA_BUNDLE_MODULES.load('i')
 local Text = __DARKLUA_BUNDLE_MODULES.load('a')
@@ -34294,7 +34264,7 @@ return function(tab, window, options)
     controller:Refresh()
     return controller
 end
-end function __DARKLUA_BUNDLE_MODULES.ak()
+end function __DARKLUA_BUNDLE_MODULES.al()
 local UserInputService = game:GetService("UserInputService")
 local Mouse = game.Players.LocalPlayer:GetMouse()
 
@@ -34302,8 +34272,8 @@ local Creator = __DARKLUA_BUNDLE_MODULES.load('l')
 local New = Creator.New
 local Tween = Creator.Tween
 
-local CreateToolTip = __DARKLUA_BUNDLE_MODULES.load('N').New
-local CreateScrollSlider = __DARKLUA_BUNDLE_MODULES.load('J').New
+local CreateToolTip = __DARKLUA_BUNDLE_MODULES.load('O').New
+local CreateScrollSlider = __DARKLUA_BUNDLE_MODULES.load('K').New
 
 
 
@@ -34572,6 +34542,21 @@ function TabModule.New(Config, UIScale)
     local hoverTimer
     local MouseConn
     local IsHovering = false
+    local function stopTooltip()
+        IsHovering = false
+        if hoverTimer then
+            task.cancel(hoverTimer)
+            hoverTimer = nil
+        end
+        if MouseConn then
+            MouseConn:Disconnect()
+            MouseConn = nil
+        end
+        if ToolTip then
+            ToolTip:Close()
+            ToolTip = nil
+        end
+    end
     
         
 	
@@ -34597,6 +34582,8 @@ function TabModule.New(Config, UIScale)
                 end
             end)
         end)
+        Creator.AddSignal(Tab.UIElements.Main.InputEnded, stopTooltip)
+        Creator.AddSignal(Tab.UIElements.Main.Destroying, stopTooltip)
         
     end
     
@@ -34605,21 +34592,9 @@ function TabModule.New(Config, UIScale)
             Tween(Tab.UIElements.Main.Frame, 0.08, {ImageTransparency = .97}):Play()
         end
     end)
-    Creator.AddSignal(Tab.UIElements.Main.InputEnded, function()
+    Creator.AddSignal(Tab.UIElements.Main.MouseLeave, function()
         if Tab.Desc then
-            IsHovering = false
-            if hoverTimer then
-                task.cancel(hoverTimer)
-                hoverTimer = nil
-            end
-            if MouseConn then
-                MouseConn:Disconnect()
-                MouseConn = nil
-            end
-            if ToolTip then
-                ToolTip:Close()
-                ToolTip = nil
-            end
+            stopTooltip()
         end
         
         if not Tab.Locked then
@@ -34660,14 +34635,14 @@ function TabModule.New(Config, UIScale)
     
 	
 	
-    Tab.ElementsModule = __DARKLUA_BUNDLE_MODULES.load('ai')
+    Tab.ElementsModule = __DARKLUA_BUNDLE_MODULES.load('aj')
     
     Tab.ElementsModule.Load(Tab, Tab.UIElements.ContainerFrame, Tab.ElementsModule.Elements, Window, WindUI, nil, Tab.ElementsModule, UIScale)
     
     
     
     function Tab:Changelog(options)
-        return __DARKLUA_BUNDLE_MODULES.load('aj')(Tab, Window, options)
+        return __DARKLUA_BUNDLE_MODULES.load('ak')(Tab, Window, options)
     end
 
     function Tab:LockAll()
@@ -34806,7 +34781,7 @@ function TabModule:SelectTab(TabIndex)
 end
 
 return TabModule
-end function __DARKLUA_BUNDLE_MODULES.al()
+end function __DARKLUA_BUNDLE_MODULES.am()
 local Section = {}
 
 
@@ -34814,7 +34789,7 @@ local Creator = __DARKLUA_BUNDLE_MODULES.load('l')
 local New = Creator.New
 local Tween = Creator.Tween
 
-local TabModule = __DARKLUA_BUNDLE_MODULES.load('ak')
+local TabModule = __DARKLUA_BUNDLE_MODULES.load('al')
 
 function Section.New(SectionConfig, Parent, Folder, UIScale, Window)
     local SectionModule = {
@@ -34981,7 +34956,7 @@ end
 
 
 return Section
-end function __DARKLUA_BUNDLE_MODULES.am()
+end function __DARKLUA_BUNDLE_MODULES.an()
 return { 
     Tab         = "table-of-contents",
     Paragraph   = "type",
@@ -34993,7 +34968,7 @@ return {
     Dropdown    = "chevrons-up-down",
     Code        = "terminal",
     Colorpicker = "palette",
-}end function __DARKLUA_BUNDLE_MODULES.an()
+}end function __DARKLUA_BUNDLE_MODULES.ao()
 local UserInputService = game:GetService("UserInputService")
 
 local SearchBar = {
@@ -35015,7 +34990,7 @@ function SearchBar.new(TabModule, Parent, OnClose)
         Width = 400,
         MaxHeight = 380,
         
-        Icons = __DARKLUA_BUNDLE_MODULES.load('am')
+        Icons = __DARKLUA_BUNDLE_MODULES.load('an')
     }
     
     
@@ -35346,7 +35321,7 @@ function SearchBar.new(TabModule, Parent, OnClose)
             Tween(Tab.Main, .04, {ImageTransparency = .95}):Play()
             Tween(Tab.Main.Outline, .04, {ImageTransparency = .7}):Play()
         end)
-        Creator.AddSignal(Tab.Main.InputEnded, function()
+        Creator.AddSignal(Tab.Main.MouseLeave, function()
             Tween(Tab.Main, .08, {ImageTransparency = 1}):Play()
             Tween(Tab.Main.Outline, .08, {ImageTransparency = 1}):Play()
         end)
@@ -35518,26 +35493,27 @@ function SearchBar.new(TabModule, Parent, OnClose)
     return SearchBarModule
 end
 
-return SearchBar end function __DARKLUA_BUNDLE_MODULES.ao()
+return SearchBar
+end function __DARKLUA_BUNDLE_MODULES.ap()
 
 local UserInputService = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
 
 local CurrentCamera = workspace.CurrentCamera
 
-local Acrylic = __DARKLUA_BUNDLE_MODULES.load('D')
+local Acrylic = __DARKLUA_BUNDLE_MODULES.load('E')
 
 local Creator = __DARKLUA_BUNDLE_MODULES.load('l')
 local New = Creator.New
 local Tween = Creator.Tween
 
 
-local CreateLabel = __DARKLUA_BUNDLE_MODULES.load('I').New
-local CreateButton = __DARKLUA_BUNDLE_MODULES.load('w').New
-local CreateScrollSlider = __DARKLUA_BUNDLE_MODULES.load('J').New
-local Tag = __DARKLUA_BUNDLE_MODULES.load('K')
+local CreateLabel = __DARKLUA_BUNDLE_MODULES.load('J').New
+local CreateButton = __DARKLUA_BUNDLE_MODULES.load('x').New
+local CreateScrollSlider = __DARKLUA_BUNDLE_MODULES.load('K').New
+local Tag = __DARKLUA_BUNDLE_MODULES.load('L')
 
-local ConfigManager = __DARKLUA_BUNDLE_MODULES.load('L')
+local ConfigManager = __DARKLUA_BUNDLE_MODULES.load('M')
 
 local Notified = false
 
@@ -35974,7 +35950,7 @@ return function(Config)
                 Tween(UserIcon.UserIcon, 0.04, {ImageTransparency = .95}):Play()
                 Tween(UserIcon.Outline, 0.04, {ImageTransparency = .85}):Play()
             end)
-            Creator.AddSignal(UserIcon.InputEnded, function()
+            Creator.AddSignal(UserIcon.MouseLeave, function()
                 Tween(UserIcon.UserIcon, 0.04, {ImageTransparency = 1}):Play()
                 Tween(UserIcon.Outline, 0.04, {ImageTransparency = 1}):Play()
             end)
@@ -36437,7 +36413,7 @@ New("Frame", {
     
     
     
-    Window.OpenButtonMain = __DARKLUA_BUNDLE_MODULES.load('M').New(Window)
+    Window.OpenButtonMain = __DARKLUA_BUNDLE_MODULES.load('N').New(Window)
 
     
     task.spawn(function()
@@ -36884,8 +36860,8 @@ New("Frame", {
     end
     
     
-    local TabModuleMain = __DARKLUA_BUNDLE_MODULES.load('ak')
-    local SectionModule = __DARKLUA_BUNDLE_MODULES.load('al')
+    local TabModuleMain = __DARKLUA_BUNDLE_MODULES.load('al')
+    local SectionModule = __DARKLUA_BUNDLE_MODULES.load('am')
     local TabModule = TabModuleMain.Init(Window, Config.WindUI, Config.Parent.Parent.ToolTips)
     TabModule:OnChange(function(t) Window.CurrentTab = t end)
     
@@ -36940,7 +36916,7 @@ New("Frame", {
         return MainDivider
     end
     
-    local DialogModule = __DARKLUA_BUNDLE_MODULES.load('y').Init(Window, nil)
+    local DialogModule = __DARKLUA_BUNDLE_MODULES.load('z').Init(Window, nil)
     function Window:Dialog(DialogConfig)
         local DialogTable = {
             Title = DialogConfig.Title or "Dialog",
@@ -37265,7 +37241,7 @@ New("Frame", {
     
     
     if not Window.HideSearchBar then
-        local SearchBar = __DARKLUA_BUNDLE_MODULES.load('an')
+        local SearchBar = __DARKLUA_BUNDLE_MODULES.load('ao')
         local IsOpen = false
         local CurrentSearchBar
     
@@ -37328,7 +37304,7 @@ New("Frame", {
 
     return Window
 end
-end function __DARKLUA_BUNDLE_MODULES.ap()
+end function __DARKLUA_BUNDLE_MODULES.aq()
 local Storage = __DARKLUA_BUNDLE_MODULES.load('i')
 
 return function(window, tab)
@@ -37416,7 +37392,7 @@ return function(window, tab)
     end)
     return controls
 end
-end function __DARKLUA_BUNDLE_MODULES.aq()
+end function __DARKLUA_BUNDLE_MODULES.ar()
 return function(window, options)
     local config = table.clone(options or {})
     config.Title = config.Title or "Settings"
@@ -37456,10 +37432,10 @@ return function(window, options)
         Callback = function(value) window:SetNotifications(value) end,
     })
     tab:Button({ Title = "Center window", Icon = "scan", Callback = function() window:SetToTheCenter() end })
-    if config.Configs then tab.Controls.Configs = __DARKLUA_BUNDLE_MODULES.load('ap')(window, tab) end
+    if config.Configs then tab.Controls.Configs = __DARKLUA_BUNDLE_MODULES.load('aq')(window, tab) end
     return tab
 end
-end function __DARKLUA_BUNDLE_MODULES.ar()
+end function __DARKLUA_BUNDLE_MODULES.as()
 local Creator = __DARKLUA_BUNDLE_MODULES.load('l')
 local RunService = game:GetService("RunService")
 local MarketplaceService = game:GetService("MarketplaceService")
@@ -37495,7 +37471,7 @@ return function(window, tab, options)
     end)
     return paragraph
 end
-end function __DARKLUA_BUNDLE_MODULES.as()
+end function __DARKLUA_BUNDLE_MODULES.at()
 local Creator = __DARKLUA_BUNDLE_MODULES.load('l')
 local HttpService = game:GetService("HttpService")
 
@@ -37546,7 +37522,7 @@ return function(window, tab, options)
     end
     return controller
 end
-end function __DARKLUA_BUNDLE_MODULES.at()
+end function __DARKLUA_BUNDLE_MODULES.au()
 local Creator = __DARKLUA_BUNDLE_MODULES.load('l')
 local HttpService = game:GetService("HttpService")
 
@@ -37629,7 +37605,7 @@ local WindUI = {
     Theme = nil,
     Creator = __DARKLUA_BUNDLE_MODULES.load('l'),
     LocalizationModule = __DARKLUA_BUNDLE_MODULES.load('m'),
-    NotificationModule = __DARKLUA_BUNDLE_MODULES.load('n'),
+    NotificationModule = __DARKLUA_BUNDLE_MODULES.load('o'),
     Themes = nil,
     Transparent = false,
     
@@ -37640,7 +37616,7 @@ local WindUI = {
     ConfigManager = nil,
     Version = "0.0.0",
     
-    Services = __DARKLUA_BUNDLE_MODULES.load('r'),
+    Services = __DARKLUA_BUNDLE_MODULES.load('s'),
     
     OnThemeChangeFunction = nil,
 }
@@ -37649,17 +37625,17 @@ local WindUI = {
 local HttpService = game:GetService("HttpService")
 local Storage = __DARKLUA_BUNDLE_MODULES.load('i')
 local Assets = __DARKLUA_BUNDLE_MODULES.load('j')
-local Preferences = __DARKLUA_BUNDLE_MODULES.load('s')
-local Runtime = __DARKLUA_BUNDLE_MODULES.load('t')
-local WindowDefaults = __DARKLUA_BUNDLE_MODULES.load('u')
+local Preferences = __DARKLUA_BUNDLE_MODULES.load('t')
+local Runtime = __DARKLUA_BUNDLE_MODULES.load('u')
+local WindowDefaults = __DARKLUA_BUNDLE_MODULES.load('v')
 
 
-local Package = HttpService:JSONDecode(__DARKLUA_BUNDLE_MODULES.load('v'))
+local Package = HttpService:JSONDecode(__DARKLUA_BUNDLE_MODULES.load('w'))
 if Package then
     WindUI.Version = Package.version
 end
 
-local KeySystem = __DARKLUA_BUNDLE_MODULES.load('z')
+local KeySystem = __DARKLUA_BUNDLE_MODULES.load('A')
 
 local ServicesModule = WindUI.Services
 
@@ -37670,7 +37646,7 @@ local New = Creator.New
 local Tween = Creator.Tween
 
 
-local Acrylic = __DARKLUA_BUNDLE_MODULES.load('D')
+local Acrylic = __DARKLUA_BUNDLE_MODULES.load('E')
 
 local LocalPlayer = game:GetService("Players") and game:GetService("Players").LocalPlayer or nil
 
@@ -37851,11 +37827,11 @@ end
 
 function WindUI:Popup(PopupConfig)
     PopupConfig.WindUI = WindUI
-    return __DARKLUA_BUNDLE_MODULES.load('E').new(PopupConfig)
+    return __DARKLUA_BUNDLE_MODULES.load('F').new(PopupConfig)
 end
 
 
-WindUI.Themes = __DARKLUA_BUNDLE_MODULES.load('H')(WindUI)
+WindUI.Themes = __DARKLUA_BUNDLE_MODULES.load('I')(WindUI)
 
 Creator.Themes = WindUI.Themes
 
@@ -37870,7 +37846,7 @@ function WindUI:Text(value, color)
 end
 
 function WindUI:CreateWindow(Config)
-    local CreateWindow = __DARKLUA_BUNDLE_MODULES.load('ao')
+    local CreateWindow = __DARKLUA_BUNDLE_MODULES.load('ap')
     if WindUI.Window then
         warn("You cannot create more than one window")
         return
@@ -37964,16 +37940,16 @@ function WindUI:CreateWindow(Config)
     Preferences.Attach(Window, WindUI, Config, settings, hadSaved, folderPath)
     Runtime.Register(folderPath, Window)
     function Window:SettingsTab(options)
-        return __DARKLUA_BUNDLE_MODULES.load('aq')(Window, options)
+        return __DARKLUA_BUNDLE_MODULES.load('ar')(Window, options)
     end
     function Window:SessionStats(tab, options)
-        return __DARKLUA_BUNDLE_MODULES.load('ar')(Window, tab, options)
-    end
-    function Window:Community(tab, options)
         return __DARKLUA_BUNDLE_MODULES.load('as')(Window, tab, options)
     end
-    function Window:Feedback(tab, options)
+    function Window:Community(tab, options)
         return __DARKLUA_BUNDLE_MODULES.load('at')(Window, tab, options)
+    end
+    function Window:Feedback(tab, options)
+        return __DARKLUA_BUNDLE_MODULES.load('au')(Window, tab, options)
     end
     function Window:CopyText(link, options)
         options = options or {}

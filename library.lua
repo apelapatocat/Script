@@ -22,7 +22,40 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ]==]
-local __DARKLUA_BUNDLE_MODULES __DARKLUA_BUNDLE_MODULES={cache={}, load=function(m)if not __DARKLUA_BUNDLE_MODULES.cache[m]then __DARKLUA_BUNDLE_MODULES.cache[m]={c=__DARKLUA_BUNDLE_MODULES[m]()}end return __DARKLUA_BUNDLE_MODULES.cache[m].c end}do function __DARKLUA_BUNDLE_MODULES.a()
+local __DARKLUA_BUNDLE_MODULES __DARKLUA_BUNDLE_MODULES={cache={}, load=function(m)if not __DARKLUA_BUNDLE_MODULES.cache[m]then __DARKLUA_BUNDLE_MODULES.cache[m]={c=__DARKLUA_BUNDLE_MODULES[m]()}end return __DARKLUA_BUNDLE_MODULES.cache[m].c end}do function __DARKLUA_BUNDLE_MODULES.a()local Text = {}
+local names = {
+    red = "#FF5555", green = "#55DD88", blue = "#5599FF", white = "#FFFFFF",
+    black = "#000000", purple = "#A855F7", violet = "#A855F7", yellow = "#FFD166",
+    orange = "#FF9955", pink = "#FF77BB", gray = "#AAAAAA", grey = "#AAAAAA",
+}
+
+function Text.Color(value)
+    if typeof(value) == "Color3" then return value end
+    if type(value) ~= "string" then return nil end
+    value = names[value:lower()] or value
+    local hex = value:gsub("^#", "")
+    if #hex == 3 then hex = hex:gsub(".", "%0%0") end
+    if #hex ~= 6 or hex:find("[^%x]") then return nil end
+    return Color3.fromHex(hex)
+end
+
+function Text.Format(value)
+    value = tostring(value or "")
+    return (value:gsub("%[color=([^%]]+)%]", function(color)
+        local parsed = Text.Color(color)
+        return parsed and ('<font color="#' .. parsed:ToHex() .. '">') or ""
+    end):gsub("%[/color%]", "</font>"))
+end
+
+function Text.Colored(value, color)
+    local parsed = assert(Text.Color(color), "Use a Color3, color name, #RGB or #RRGGBB")
+    local escaped = tostring(value):gsub("&", "&amp;"):gsub("<", "&lt;"):gsub(">", "&gt;"):gsub('"', "&quot;")
+    return '<font color="#' .. parsed:ToHex() .. '">' .. escaped .. '</font>'
+end
+
+return Text
+end function __DARKLUA_BUNDLE_MODULES.b()
+
 
 return {
 	["a-arrow-down"] = "rbxassetid://92867583610071",
@@ -1741,7 +1774,7 @@ return {
 	["zodiac-taurus"] = "rbxassetid://123053219704400",
 	["zodiac-virgo"] = "rbxassetid://99462994613661",
 }
-end function __DARKLUA_BUNDLE_MODULES.b()
+end function __DARKLUA_BUNDLE_MODULES.c()
 
 
 
@@ -9077,7 +9110,7 @@ return {
 	["zip-file-linear"] = "rbxassetid://102428358345128",
 	["zip-file-outline"] = "rbxassetid://134842241804608",
 }
-end function __DARKLUA_BUNDLE_MODULES.c()
+end function __DARKLUA_BUNDLE_MODULES.d()
 
 
 
@@ -14084,7 +14117,7 @@ return { Spritesheets = {
             Image = 10,
         },
     }
-}end function __DARKLUA_BUNDLE_MODULES.d()
+}end function __DARKLUA_BUNDLE_MODULES.e()
 
 
 
@@ -16454,7 +16487,7 @@ return {
         },
     }
 }
-end function __DARKLUA_BUNDLE_MODULES.e()
+end function __DARKLUA_BUNDLE_MODULES.f()
 
 
 
@@ -23443,7 +23476,7 @@ return {
     ["zrButtonRoundedtopHorizontal"] = "rbxassetid://119287314704938",
     ["zrButtonRoundedtopHorizontalFill"] = "rbxassetid://137388293496371",
     ["zzz"] = "rbxassetid://80729085783608",
-}end function __DARKLUA_BUNDLE_MODULES.f()
+}end function __DARKLUA_BUNDLE_MODULES.g()
 
 
 
@@ -24230,7 +24263,7 @@ return {
 	["xmark-shape"] = "rbxassetid://113332623964226",
 	["xmark-shape-fill"] = "rbxassetid://102835594333260",
 }
-end function __DARKLUA_BUNDLE_MODULES.g()
+end function __DARKLUA_BUNDLE_MODULES.h()
 
 
 local IconModule = {
@@ -24238,12 +24271,12 @@ local IconModule = {
     New = nil,
     IconThemeTag = nil,
     Icons = {
-        lucide = __DARKLUA_BUNDLE_MODULES.load('a'),
-        solar = __DARKLUA_BUNDLE_MODULES.load('b'),
-        craft = __DARKLUA_BUNDLE_MODULES.load('c'),
-        geist = __DARKLUA_BUNDLE_MODULES.load('d'),
-        sfsymbols = __DARKLUA_BUNDLE_MODULES.load('e'),
-        gravity = __DARKLUA_BUNDLE_MODULES.load('f'),
+        lucide = __DARKLUA_BUNDLE_MODULES.load('b'),
+        solar = __DARKLUA_BUNDLE_MODULES.load('c'),
+        craft = __DARKLUA_BUNDLE_MODULES.load('d'),
+        geist = __DARKLUA_BUNDLE_MODULES.load('e'),
+        sfsymbols = __DARKLUA_BUNDLE_MODULES.load('f'),
+        gravity = __DARKLUA_BUNDLE_MODULES.load('g'),
     },
 }
 
@@ -24444,10 +24477,10 @@ function IconModule.Image(IconConfig)
 end
 
 return IconModule
-end function __DARKLUA_BUNDLE_MODULES.h()
+end function __DARKLUA_BUNDLE_MODULES.i()
 local HttpService = game:GetService("HttpService")
 
-local Storage = { Root = "VibeScripts" }
+local Storage = { Root = "VibeUI" }
 
 function Storage.Ensure(path)
     assert(type(isfolder) == "function" and type(makefolder) == "function", "VibeUI needs filesystem support")
@@ -24462,9 +24495,18 @@ function Storage.Ensure(path)
     return path
 end
 
-function Storage.Window(folder)
+function Storage.Window(folder, subfolder)
     assert(type(folder) == "string" and folder ~= "", "Folder must be a nonempty string")
-    local path = Storage.Root .. "/" .. folder
+    assert(subfolder == nil or (type(subfolder) == "string" and subfolder ~= ""), "SubFolder must be a nonempty string")
+    local parts = {}
+    for _, segment in ipairs({ folder, subfolder }) do
+        assert(not segment:match("^[/\\]") and not segment:find(":", 1, true), "Use a relative storage folder")
+        for part in segment:gmatch("[^/\\]+") do
+            assert(part ~= "." and part ~= "..", "Invalid VibeUI folder")
+            table.insert(parts, part)
+        end
+    end
+    local path = table.concat(parts, "/")
     Storage.Ensure(path .. "/assets")
     Storage.Ensure(path .. "/config")
     return path
@@ -24493,8 +24535,8 @@ function Storage.WriteJSON(path, value)
 end
 
 return Storage
-end function __DARKLUA_BUNDLE_MODULES.i()
-local Storage = __DARKLUA_BUNDLE_MODULES.load('h')
+end function __DARKLUA_BUNDLE_MODULES.j()
+local Storage = __DARKLUA_BUNDLE_MODULES.load('i')
 local Assets = {}
 
 local function decodeBase64(data)
@@ -24521,7 +24563,7 @@ local function extension(data)
     return nil
 end
 
-function Assets.Resolve(source, folder)
+function Assets.Resolve(source, storagePath)
     if type(source) ~= "string" or source == "" then return nil end
     local encoded = source:match("^data:image/[%w+.-]+;base64,(.+)$")
     if not source:match("^https?://") and not encoded then return source end
@@ -24529,7 +24571,7 @@ function Assets.Resolve(source, folder)
     if type(customAsset) ~= "function" or type(writefile) ~= "function" then return nil end
     local hash = 5381
     for index = 1, #source do hash = (hash * 33 + source:byte(index)) % 4294967296 end
-    local base = Storage.Window(folder or "Core") .. "/assets/" .. string.format("%08x", hash)
+    local base = Storage.Window(storagePath or "VibeUI") .. "/assets/" .. string.format("%08x", hash)
     for _, suffix in ipairs({ "png", "jpg", "webp" }) do
         local path = base .. "." .. suffix
         local contents = Storage.Read(path)
@@ -24551,7 +24593,7 @@ function Assets.Resolve(source, folder)
 end
 
 return Assets
-end function __DARKLUA_BUNDLE_MODULES.j()
+end function __DARKLUA_BUNDLE_MODULES.k()
 return {
     Dialog = "Accent",
     
@@ -24585,7 +24627,8 @@ return {
     ShortcutTitle = "Text",
     ShortcutDesc = "Placeholder",
 }
-end function __DARKLUA_BUNDLE_MODULES.k()
+end function __DARKLUA_BUNDLE_MODULES.l()
+local Text = __DARKLUA_BUNDLE_MODULES.load('a')
 local RunService = game:GetService("RunService")
 local RenderStepped = RunService.Heartbeat
 local UserInputService = game:GetService("UserInputService")
@@ -24593,14 +24636,14 @@ local TweenService = game:GetService("TweenService")
 local LocalizationService = game:GetService("LocalizationService")
 local HttpService = game:GetService("HttpService")
 
-local Icons = __DARKLUA_BUNDLE_MODULES.load('g')
-local Assets = __DARKLUA_BUNDLE_MODULES.load('i')
+local Icons = __DARKLUA_BUNDLE_MODULES.load('h')
+local Assets = __DARKLUA_BUNDLE_MODULES.load('j')
 Icons.SetIconsType("lucide")
 
 local WindUI
 
 local Creator = {
-    StorageRoot = "VibeScripts",
+    StorageRoot = "VibeUI",
     MobileMode = (UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled)
         or (((getgenv and getgenv()) or _G).VibeScriptsMobilePreview == true),
     Font = "rbxassetid://12187365364",
@@ -24680,7 +24723,7 @@ local Creator = {
         White = "#ffffff",
         Grey = "#484848",
     },
-    ThemeFallbacks = __DARKLUA_BUNDLE_MODULES.load('j')
+    ThemeFallbacks = __DARKLUA_BUNDLE_MODULES.load('k')
 }
 
 function Creator.Init(WindUITable)
@@ -25001,6 +25044,10 @@ function Creator.New(Name, Properties, Children)
         end
     end
     
+    if (Object:IsA("TextLabel") or Object:IsA("TextButton")) and Object.RichText then
+        Object.Text = Text.Format(Object.Text)
+    end
+
     if Creator.MobileMode and (Object:IsA("TextLabel") or Object:IsA("TextButton") or Object:IsA("TextBox")) then
         local baseSize = Object.TextSize
         Object.TextSize = math.max(15, math.floor(baseSize * (baseSize <= 20 and 1.2 or 1.08) + 0.5))
@@ -25230,7 +25277,7 @@ function Creator.Image(Img, Name, Corner, Folder, Type, IsThemeTag, Themed, Them
         }).IconFrame
         IconLabel.Parent = ImageFrame
     elseif Img:match("^https?://") then
-        local asset = Assets.Resolve(Img, Folder)
+        local asset = Assets.Resolve(Img, Creator.StoragePath or Folder)
         if asset then
             ImageFrame.ImageLabel.Image = asset
         else
@@ -25247,7 +25294,7 @@ function Creator.Image(Img, Name, Corner, Folder, Type, IsThemeTag, Themed, Them
 end
 
 return Creator
-end function __DARKLUA_BUNDLE_MODULES.l()
+end function __DARKLUA_BUNDLE_MODULES.m()
 local Localization = {}
 
 
@@ -25271,8 +25318,8 @@ end
 
 
 
-return Localization end function __DARKLUA_BUNDLE_MODULES.m()
-local Creator = __DARKLUA_BUNDLE_MODULES.load('k')
+return Localization end function __DARKLUA_BUNDLE_MODULES.n()
+local Creator = __DARKLUA_BUNDLE_MODULES.load('l')
 local New = Creator.New
 local Tween = Creator.Tween
 
@@ -25557,7 +25604,7 @@ function NotificationModule.New(Config)
     return Notification
 end
 
-return NotificationModule end function __DARKLUA_BUNDLE_MODULES.n()
+return NotificationModule end function __DARKLUA_BUNDLE_MODULES.o()
 
 
 
@@ -25837,7 +25884,7 @@ end
 end
 
 
-return Platoboost end function __DARKLUA_BUNDLE_MODULES.o()
+return Platoboost end function __DARKLUA_BUNDLE_MODULES.p()
 
 
 
@@ -25909,7 +25956,7 @@ function PandaDevelopment.New(serviceId)
     }
 end
 
-return PandaDevelopment end function __DARKLUA_BUNDLE_MODULES.p()
+return PandaDevelopment end function __DARKLUA_BUNDLE_MODULES.q()
 
 
 
@@ -25960,7 +26007,7 @@ function Luarmor.New(scriptId, discord)
 end
 
 
-return Luarmor end function __DARKLUA_BUNDLE_MODULES.q()
+return Luarmor end function __DARKLUA_BUNDLE_MODULES.r()
 return {
     platoboost = {
         Name = "Platoboost",
@@ -25968,7 +26015,7 @@ return {
         Args = {"ServiceId", "Secret"},
         
         
-        New = __DARKLUA_BUNDLE_MODULES.load('n').New
+        New = __DARKLUA_BUNDLE_MODULES.load('o').New
     },
     pandadevelopment = {
         Name = "Panda Development",
@@ -25976,7 +26023,7 @@ return {
         Args = {"ServiceId"},
         
         
-        New = __DARKLUA_BUNDLE_MODULES.load('o').New
+        New = __DARKLUA_BUNDLE_MODULES.load('p').New
     },
     luarmor = {
         Name = "Luarmor",
@@ -25984,11 +26031,11 @@ return {
         Args = {"ScriptId", "Discord"},
         
         
-        New = __DARKLUA_BUNDLE_MODULES.load('p').New
+        New = __DARKLUA_BUNDLE_MODULES.load('q').New
     },
     
-}end function __DARKLUA_BUNDLE_MODULES.r()
-local Storage = __DARKLUA_BUNDLE_MODULES.load('h')
+}end function __DARKLUA_BUNDLE_MODULES.s()
+local Storage = __DARKLUA_BUNDLE_MODULES.load('i')
 local Preferences = {}
 
 local function keyboardKey(value)
@@ -26012,13 +26059,13 @@ function Preferences.Load(config, library, path)
     local saved
     if config.SaveSettings then
         saved = Storage.ReadJSON(path .. "/settings.json")
-        if not saved and config.Folder == "Core" then
-            saved = Storage.ReadJSON(Storage.Root .. "/settings.json")
+        if not saved and path == "VibeScripts/Core" then
+            saved = Storage.ReadJSON("VibeScripts/settings.json")
         end
     end
     if saved then
         if library.Themes[saved.Theme] then state.Theme = saved.Theme end
-        if type(saved.Scale) == "number" and saved.Scale == saved.Scale then state.Scale = math.clamp(saved.Scale, 40, 120) end
+        if type(saved.Scale) == "number" and saved.Scale == saved.Scale then state.Scale = math.clamp(saved.Scale, 30, 120) end
         if type(saved.Transparent) == "boolean" then state.Transparent = saved.Transparent end
         if type(saved.Notifications) == "boolean" then state.Notifications = saved.Notifications end
         local key = keyboardKey(saved.ToggleKey)
@@ -26084,7 +26131,7 @@ function Preferences.Attach(window, library, config, state, hadSaved, path)
 end
 
 return Preferences
-end function __DARKLUA_BUNDLE_MODULES.s()
+end function __DARKLUA_BUNDLE_MODULES.t()
 local environment = (getgenv and getgenv()) or _G
 environment.__VibeUIWindows = environment.__VibeUIWindows or {}
 local windows = environment.__VibeUIWindows
@@ -26110,16 +26157,16 @@ function Runtime.Register(path, window)
 end
 
 return Runtime
-end function __DARKLUA_BUNDLE_MODULES.t()
+end function __DARKLUA_BUNDLE_MODULES.u()
 return function(options)
     local config = table.clone(options or {})
     local defaults = {
-        Title = "VibeScripts",
-        Author = "Your scripts. Your vibe.",
+        Title = "VibeUI",
+        Author = "",
         Icon = "sparkles",
         IconSize = 38,
         IconThemed = false,
-        Folder = "Core",
+        Folder = "VibeUI",
         Size = UDim2.fromOffset(700, 600),
         MinSize = Vector2.new(560, 440),
         MaxSize = Vector2.new(920, 760),
@@ -26149,7 +26196,7 @@ return function(options)
     end
     return config
 end
-end function __DARKLUA_BUNDLE_MODULES.u()
+end function __DARKLUA_BUNDLE_MODULES.v()
 
 return [==[
 {
@@ -26192,10 +26239,10 @@ return [==[
   }
 }
 ]==]
-end function __DARKLUA_BUNDLE_MODULES.v()
+end function __DARKLUA_BUNDLE_MODULES.w()
 local Button = {}
 
-local Creator = __DARKLUA_BUNDLE_MODULES.load('k')
+local Creator = __DARKLUA_BUNDLE_MODULES.load('l')
 local New = Creator.New
 local Tween = Creator.Tween
 
@@ -26336,10 +26383,10 @@ function Button.New(Title, Icon, Callback, Variant, Parent, Dialog, FullRounded,
 end
 
 
-return Button end function __DARKLUA_BUNDLE_MODULES.w()
+return Button end function __DARKLUA_BUNDLE_MODULES.x()
 local Input = {}
 
-local Creator = __DARKLUA_BUNDLE_MODULES.load('k')
+local Creator = __DARKLUA_BUNDLE_MODULES.load('l')
 local New = Creator.New
 local Tween = Creator.Tween
 
@@ -26470,8 +26517,8 @@ function Input.New(Placeholder, Icon, Parent, Type, Callback, OnChange, Radius, 
 end
 
 
-return Input end function __DARKLUA_BUNDLE_MODULES.x()
-local Creator = __DARKLUA_BUNDLE_MODULES.load('k')
+return Input end function __DARKLUA_BUNDLE_MODULES.y()
+local Creator = __DARKLUA_BUNDLE_MODULES.load('l')
 local New = Creator.New
 local Tween = Creator.Tween
 
@@ -26625,19 +26672,19 @@ function DialogModule.Create(Key)
     return Dialog
 end
 
-return DialogModule end function __DARKLUA_BUNDLE_MODULES.y()
+return DialogModule end function __DARKLUA_BUNDLE_MODULES.z()
 local KeySystem = {}
 
 
-local Creator = __DARKLUA_BUNDLE_MODULES.load('k')
+local Creator = __DARKLUA_BUNDLE_MODULES.load('l')
 local New = Creator.New
 local Tween = Creator.Tween
 
-local CreateButton = __DARKLUA_BUNDLE_MODULES.load('v').New
-local CreateInput = __DARKLUA_BUNDLE_MODULES.load('w').New
+local CreateButton = __DARKLUA_BUNDLE_MODULES.load('w').New
+local CreateInput = __DARKLUA_BUNDLE_MODULES.load('x').New
 
 function KeySystem.new(Config, Filename, func)
-    local KeyDialogInit = __DARKLUA_BUNDLE_MODULES.load('x').Init(nil, Config.WindUI.ScreenGui.KeySystem)
+    local KeyDialogInit = __DARKLUA_BUNDLE_MODULES.load('y').Init(nil, Config.WindUI.ScreenGui.KeySystem)
     local KeyDialog = KeyDialogInit.Create(true)
     
     local Services = {}
@@ -27056,7 +27103,7 @@ function KeySystem.new(Config, Filename, func)
     
     local function handleSuccess(key)
         KeyDialog:Close()()
-        writefile(Creator.StorageRoot .. "/" .. (Config.Folder or "Temp") .. "/" .. Filename .. ".key", tostring(key))
+        writefile(Config.StoragePath .. "/" .. Filename .. ".key", tostring(key))
         task.wait(.4)
         func(true)
     end
@@ -27117,7 +27164,7 @@ function KeySystem.new(Config, Filename, func)
     KeyDialog:Open()
 end
 
-return KeySystem end function __DARKLUA_BUNDLE_MODULES.z()
+return KeySystem end function __DARKLUA_BUNDLE_MODULES.A()
 
 
 local function map(value, inMin, inMax, outMin, outMax)
@@ -27135,14 +27182,14 @@ local function getOffset()
 end
 
 return { viewportPointToWorld, getOffset }
-end function __DARKLUA_BUNDLE_MODULES.A()
+end function __DARKLUA_BUNDLE_MODULES.B()
 
 
-local Creator = __DARKLUA_BUNDLE_MODULES.load('k')
+local Creator = __DARKLUA_BUNDLE_MODULES.load('l')
 local New = Creator.New
 
 
-local viewportPointToWorld, getOffset = unpack(__DARKLUA_BUNDLE_MODULES.load('z'))
+local viewportPointToWorld, getOffset = unpack(__DARKLUA_BUNDLE_MODULES.load('A'))
 local BlurFolder = Instance.new("Folder", game:GetService("Workspace").CurrentCamera)
 
 
@@ -27279,11 +27326,11 @@ return function(distance)
 
 	return Blur
 end
-end function __DARKLUA_BUNDLE_MODULES.B()
+end function __DARKLUA_BUNDLE_MODULES.C()
 
 
-local Creator = __DARKLUA_BUNDLE_MODULES.load('k')
-local AcrylicBlur = __DARKLUA_BUNDLE_MODULES.load('A')
+local Creator = __DARKLUA_BUNDLE_MODULES.load('l')
+local AcrylicBlur = __DARKLUA_BUNDLE_MODULES.load('B')
 
 local New = Creator.New
 
@@ -27404,13 +27451,13 @@ return function(props)
 
 	return AcrylicPaint, Blur
 end
-end function __DARKLUA_BUNDLE_MODULES.C()
+end function __DARKLUA_BUNDLE_MODULES.D()
 
 
 local Acrylic = {
-	AcrylicBlur = __DARKLUA_BUNDLE_MODULES.load('A'),
+	AcrylicBlur = __DARKLUA_BUNDLE_MODULES.load('B'),
 	
-	AcrylicPaint = __DARKLUA_BUNDLE_MODULES.load('B'),
+	AcrylicPaint = __DARKLUA_BUNDLE_MODULES.load('C'),
 }
 
 function Acrylic.init()
@@ -27458,10 +27505,10 @@ function Acrylic.init()
 end
 
 return Acrylic
-end function __DARKLUA_BUNDLE_MODULES.D()
+end function __DARKLUA_BUNDLE_MODULES.E()
 local PopupModule = {}
 
-local Creator = __DARKLUA_BUNDLE_MODULES.load('k')
+local Creator = __DARKLUA_BUNDLE_MODULES.load('l')
 local New = Creator.New
 local Tween = Creator.Tween
 
@@ -27478,7 +27525,7 @@ function PopupModule.new(PopupConfig)
         IconSize = 22,
     }
     
-    local DialogInit = __DARKLUA_BUNDLE_MODULES.load('x').Init(nil, PopupConfig.WindUI.ScreenGui.Popups)
+    local DialogInit = __DARKLUA_BUNDLE_MODULES.load('y').Init(nil, PopupConfig.WindUI.ScreenGui.Popups)
     local Dialog = DialogInit.Create(true)
     
     local ThumbnailSize = 200
@@ -27638,7 +27685,7 @@ function PopupModule.new(PopupConfig)
         }),
     })
 
-    local CreateButton = __DARKLUA_BUNDLE_MODULES.load('v').New
+    local CreateButton = __DARKLUA_BUNDLE_MODULES.load('w').New
     
     for _, values in next, Popup.Buttons do
         CreateButton(values.Title, values.Icon, values.Callback, values.Variant, ButtonsContainer, Dialog)
@@ -27650,7 +27697,7 @@ function PopupModule.new(PopupConfig)
     return Popup
 end
 
-return PopupModule end function __DARKLUA_BUNDLE_MODULES.E()
+return PopupModule end function __DARKLUA_BUNDLE_MODULES.F()
 return {
     {
         Name = "Ocean Blue",
@@ -28093,7 +28140,7 @@ return {
         ShortcutDesc = "#771111",
     },
 }
-end function __DARKLUA_BUNDLE_MODULES.F()
+end function __DARKLUA_BUNDLE_MODULES.G()
 
 local function makeTheme(name, background, accent)
     return {
@@ -28134,9 +28181,9 @@ return {
     Midnight = makeTheme("Vibe Midnight", "#0D0914", "#181120"),
     Violet = makeTheme("Vibe Violet", "#160C23", "#29153D"),
 }
-end function __DARKLUA_BUNDLE_MODULES.G()
-local Presets = __DARKLUA_BUNDLE_MODULES.load('E')
-local VibeThemes = __DARKLUA_BUNDLE_MODULES.load('F')
+end function __DARKLUA_BUNDLE_MODULES.H()
+local Presets = __DARKLUA_BUNDLE_MODULES.load('F')
+local VibeThemes = __DARKLUA_BUNDLE_MODULES.load('G')
 return function(WindUI)
     local themes = {
         ["Vibe Midnight"] = VibeThemes.Midnight,
@@ -28363,10 +28410,10 @@ return function(WindUI)
     for _, theme in ipairs(Presets) do themes[theme.Name] = theme end
     return themes
 end
-end function __DARKLUA_BUNDLE_MODULES.H()
+end function __DARKLUA_BUNDLE_MODULES.I()
 local Label = {}
 
-local Creator = __DARKLUA_BUNDLE_MODULES.load('k')
+local Creator = __DARKLUA_BUNDLE_MODULES.load('l')
 local New = Creator.New
 local Tween = Creator.Tween
 
@@ -28463,12 +28510,12 @@ function Label.New(Text, Icon, Parent, IsPlaceholder, Radius)
 end
 
 
-return Label end function __DARKLUA_BUNDLE_MODULES.I()
+return Label end function __DARKLUA_BUNDLE_MODULES.J()
 local ScrollSlider = {}
 
 local UserInputService = game:GetService("UserInputService")
 
-local Creator = __DARKLUA_BUNDLE_MODULES.load('k')
+local Creator = __DARKLUA_BUNDLE_MODULES.load('l')
 local New = Creator.New
 local Tween = Creator.Tween
 
@@ -28636,11 +28683,11 @@ function ScrollSlider.New(ScrollingFrame, Parent, Window, Thickness)
 end
 
 
-return ScrollSlider end function __DARKLUA_BUNDLE_MODULES.J()
+return ScrollSlider end function __DARKLUA_BUNDLE_MODULES.K()
 local Tag = {}
 
 
-local Creator = __DARKLUA_BUNDLE_MODULES.load('k')
+local Creator = __DARKLUA_BUNDLE_MODULES.load('l')
 local New = Creator.New
 local Tween = Creator.Tween
 
@@ -28786,10 +28833,10 @@ function Tag:New(TagConfig, Parent)
 end
 
 
-return Tag end function __DARKLUA_BUNDLE_MODULES.K()
-local Creator = __DARKLUA_BUNDLE_MODULES.load('k')
+return Tag end function __DARKLUA_BUNDLE_MODULES.L()
+local Creator = __DARKLUA_BUNDLE_MODULES.load('l')
 local HttpService = game:GetService("HttpService")
-local Storage = __DARKLUA_BUNDLE_MODULES.load('h')
+local Storage = __DARKLUA_BUNDLE_MODULES.load('i')
 
 local Window 
 
@@ -28883,15 +28930,15 @@ ConfigManager = {
 
 function ConfigManager:Init(WindowTable)
     if not WindowTable.Folder then
-        warn("[ WindUI.ConfigManager ] Window.Folder is not specified.")
+        warn("[ VibeUI.ConfigManager ] Window.Folder is not specified.")
         return false
     end
     
     Window = WindowTable
     ConfigManager.Folder = Window.Folder
-    ConfigManager.Path = Creator.StorageRoot .. "/" .. tostring(ConfigManager.Folder) .. "/config/"
+    ConfigManager.Path = Window.StoragePath .. "/config/"
     
-    Storage.Window(ConfigManager.Folder)
+    Storage.Window(Window.StoragePath)
     
     local files = ConfigManager:AllConfigs()
     
@@ -29094,10 +29141,10 @@ function ConfigManager:GetConfig(configName)
 end
 
 return ConfigManager
-end function __DARKLUA_BUNDLE_MODULES.L()
+end function __DARKLUA_BUNDLE_MODULES.M()
 local OpenButton = {}
 
-local Creator = __DARKLUA_BUNDLE_MODULES.load('k')
+local Creator = __DARKLUA_BUNDLE_MODULES.load('l')
 local New = Creator.New
 local Tween = Creator.Tween
 
@@ -29364,10 +29411,10 @@ end
 
 
 
-return OpenButton end function __DARKLUA_BUNDLE_MODULES.M()
+return OpenButton end function __DARKLUA_BUNDLE_MODULES.N()
 local ToolTip = {}
 
-local Creator = __DARKLUA_BUNDLE_MODULES.load('k')
+local Creator = __DARKLUA_BUNDLE_MODULES.load('l')
 local New = Creator.New
 local Tween = Creator.Tween
 
@@ -29505,8 +29552,9 @@ end
 
 
 
-return ToolTip end function __DARKLUA_BUNDLE_MODULES.N()
-local Creator = __DARKLUA_BUNDLE_MODULES.load('k')
+return ToolTip end function __DARKLUA_BUNDLE_MODULES.O()
+local Text = __DARKLUA_BUNDLE_MODULES.load('a')
+local Creator = __DARKLUA_BUNDLE_MODULES.load('l')
 local New = Creator.New
 local NewRoundFrame = Creator.NewRoundFrame
 local Tween = Creator.Tween
@@ -29633,7 +29681,7 @@ return function(Config)
         Image = Config.Image,
         IconThemed = Config.IconThemed or false,
         ImageSize = Config.ImageSize or 30,
-        Color = Config.Color,
+        Color = Text.Color(Creator.Colors[Config.Color] or Config.Color),
         Scalable = Config.Scalable,
         Parent = Config.Parent,
         Justify = Config.Justify or "Between", 
@@ -29676,7 +29724,7 @@ return function(Config)
             "ElementIcon"
         )
         if typeof(Element.Color) == "string" then 
-            ImageFrame.ImageLabel.ImageColor3 = GetTextColorForHSB(Color3.fromHex(Creator.Colors[Element.Color]))
+            ImageFrame.ImageLabel.ImageColor3 = GetTextColorForHSB(Text.Color(Element.Color))
         elseif typeof(Element.Color) == "Color3" then
             ImageFrame.ImageLabel.ImageColor3 = GetTextColorForHSB(Element.Color)
         end
@@ -29687,21 +29735,23 @@ return function(Config)
     end
     
     local function CreateText(Title, Type)
+        local explicitColor = Text.Color(Config[Type .. "Color"])
         local TextColor = typeof(Element.Color) == "string" 
-            and GetTextColorForHSB(Color3.fromHex(Creator.Colors[Element.Color]))
+            and GetTextColorForHSB(Text.Color(Element.Color))
             or typeof(Element.Color) == "Color3" 
             and GetTextColorForHSB(Element.Color)
         
         return New("TextLabel", {
             BackgroundTransparency = 1,
             Text = Title or "",
+            RichText = Config.RichText ~= false,
             TextSize = Type == "Desc" and 15 or 17,
             TextXAlignment = "Left",
             ThemeTag = {
-                TextColor3 = not Element.Color and ("Element" .. Type) or nil,
+                TextColor3 = not explicitColor and not Element.Color and ("Element" .. Type) or nil,
             },
-            TextColor3 = Element.Color and TextColor or nil,
-            TextTransparency = Type == "Desc" and .3 or 0,
+            TextColor3 = explicitColor or (Element.Color and TextColor or nil),
+            TextTransparency = not explicitColor and Type == "Desc" and .3 or 0,
             TextWrapped = true,
             Size = UDim2.new(Element.Justify == "Between" and 1 or 0,0,0,0),
             AutomaticSize = Element.Justify == "Between" and "Y" or "XY",
@@ -29874,7 +29924,7 @@ return function(Config)
         ImageColor3 = Element.Color and 
             ( 
                 typeof(Element.Color) == "string" 
-                    and Color3.fromHex(Creator.Colors[Element.Color]) 
+                    and Text.Color(Element.Color) 
                     or typeof(Element.Color) == "Color3" 
                     and Element.Color
             ) or nil
@@ -29907,12 +29957,12 @@ return function(Config)
     
     function Element:SetTitle(text)
         Element.Title = text
-        Title.Text = text
+        Title.Text = Config.RichText == false and tostring(text or "") or Text.Format(text)
     end
     
     function Element:SetDesc(text)
         Element.Desc = text
-        Desc.Text = text or ""
+        Desc.Text = Config.RichText == false and tostring(text or "") or Text.Format(text)
         if not text then
             Desc.Visible = false
         elseif not Desc.Visible then
@@ -29924,7 +29974,7 @@ return function(Config)
     function Element:Colorize(obj, prop)
         if Element.Color then
             obj[prop] = typeof(Element.Color) == "string" 
-                and GetTextColorForHSB(Color3.fromHex(Creator.Colors[Element.Color]))
+                and GetTextColorForHSB(Text.Color(Element.Color))
                 or typeof(Element.Color) == "Color3" 
                 and GetTextColorForHSB(Element.Color)
                 or nil 
@@ -30018,7 +30068,7 @@ return function(Config)
                 Creator.UpdateImage(ImageFrame, newImage, Element.Title)
                 
                 if typeof(Element.Color) == "string" then 
-                    ImageFrame.ImageLabel.ImageColor3 = GetTextColorForHSB(Color3.fromHex(Creator.Colors[Element.Color]))
+                    ImageFrame.ImageLabel.ImageColor3 = GetTextColorForHSB(Text.Color(Element.Color))
                 elseif typeof(Element.Color) == "Color3" then
                     ImageFrame.ImageLabel.ImageColor3 = GetTextColorForHSB(Element.Color)
                 elseif not Element.Color then
@@ -30043,7 +30093,7 @@ return function(Config)
                 )
                 
                 if typeof(Element.Color) == "string" then 
-                    ImageFrame.ImageLabel.ImageColor3 = GetTextColorForHSB(Color3.fromHex(Creator.Colors[Element.Color]))
+                    ImageFrame.ImageLabel.ImageColor3 = GetTextColorForHSB(Text.Color(Element.Color))
                 elseif typeof(Element.Color) == "Color3" then
                     ImageFrame.ImageLabel.ImageColor3 = GetTextColorForHSB(Element.Color)
                 end
@@ -30164,13 +30214,14 @@ return function(Config)
     
     
     return Element
-end end function __DARKLUA_BUNDLE_MODULES.O()
-local Creator = __DARKLUA_BUNDLE_MODULES.load('k')
+end
+end function __DARKLUA_BUNDLE_MODULES.P()
+local Creator = __DARKLUA_BUNDLE_MODULES.load('l')
 local New = Creator.New
 
 local Element = {}
 
-local CreateButton = __DARKLUA_BUNDLE_MODULES.load('v').New
+local CreateButton = __DARKLUA_BUNDLE_MODULES.load('w').New
 
 function Element:New(ElementConfig)
     ElementConfig.Hover = false  
@@ -30184,7 +30235,7 @@ function Element:New(ElementConfig)
         
         Locked = ElementConfig.Locked or false,  
     }  
-    local Paragraph = __DARKLUA_BUNDLE_MODULES.load('N')(ElementConfig)  
+    local Paragraph = __DARKLUA_BUNDLE_MODULES.load('O')(ElementConfig)  
       
     ParagraphModule.ParagraphFrame = Paragraph  
     if ElementConfig.Buttons and #ElementConfig.Buttons > 0 then  
@@ -30212,8 +30263,8 @@ function Element:New(ElementConfig)
     
 end
 
-return Element end function __DARKLUA_BUNDLE_MODULES.P()
-local Creator = __DARKLUA_BUNDLE_MODULES.load('k')
+return Element end function __DARKLUA_BUNDLE_MODULES.Q()
+local Creator = __DARKLUA_BUNDLE_MODULES.load('l')
 local New = Creator.New
 
 local Element = {}
@@ -30235,7 +30286,7 @@ function Element:New(Config)
     
     local CanCallback = true
     
-    Button.ButtonFrame = __DARKLUA_BUNDLE_MODULES.load('N')({
+    Button.ButtonFrame = __DARKLUA_BUNDLE_MODULES.load('O')({
         Title = Button.Title,
         Desc = Button.Desc,
         Parent = Config.Parent,
@@ -30310,10 +30361,10 @@ function Element:New(Config)
     return Button.__type, Button
 end
 
-return Element end function __DARKLUA_BUNDLE_MODULES.Q()
+return Element end function __DARKLUA_BUNDLE_MODULES.R()
 local Toggle = {}
 
-local Creator = __DARKLUA_BUNDLE_MODULES.load('k')
+local Creator = __DARKLUA_BUNDLE_MODULES.load('l')
 local New = Creator.New
 local Tween = Creator.Tween
 
@@ -30438,10 +30489,10 @@ function Toggle.New(Value, Icon, Parent, Callback)
 end
 
 
-return Toggle end function __DARKLUA_BUNDLE_MODULES.R()
+return Toggle end function __DARKLUA_BUNDLE_MODULES.S()
 local Checkbox = {}
 
-local Creator = __DARKLUA_BUNDLE_MODULES.load('k')
+local Creator = __DARKLUA_BUNDLE_MODULES.load('l')
 local New = Creator.New
 local Tween = Creator.Tween
 
@@ -30532,13 +30583,13 @@ function Checkbox.New(Value, Icon, Parent, Callback)
 end
 
 
-return Checkbox end function __DARKLUA_BUNDLE_MODULES.S()
-local Creator = __DARKLUA_BUNDLE_MODULES.load('k')
+return Checkbox end function __DARKLUA_BUNDLE_MODULES.T()
+local Creator = __DARKLUA_BUNDLE_MODULES.load('l')
 local New = Creator.New
 local Tween = Creator.Tween
 
-local CreateToggle = __DARKLUA_BUNDLE_MODULES.load('Q').New
-local CreateCheckbox = __DARKLUA_BUNDLE_MODULES.load('R').New
+local CreateToggle = __DARKLUA_BUNDLE_MODULES.load('R').New
+local CreateCheckbox = __DARKLUA_BUNDLE_MODULES.load('S').New
 
 local Element = {}
 
@@ -30554,7 +30605,7 @@ function Element:New(Config)
         Callback = Config.Callback or function() end,
         UIElements = {}
     }
-    Toggle.ToggleFrame = __DARKLUA_BUNDLE_MODULES.load('N')({
+    Toggle.ToggleFrame = __DARKLUA_BUNDLE_MODULES.load('O')({
         Title = Toggle.Title,
         Desc = Toggle.Desc,
         
@@ -30624,8 +30675,8 @@ function Element:New(Config)
     return Toggle.__type, Toggle
 end
 
-return Element end function __DARKLUA_BUNDLE_MODULES.T()
-local Creator = __DARKLUA_BUNDLE_MODULES.load('k')
+return Element end function __DARKLUA_BUNDLE_MODULES.U()
+local Creator = __DARKLUA_BUNDLE_MODULES.load('l')
 local New = Creator.New
 local Tween = Creator.Tween
 
@@ -30649,11 +30700,17 @@ function Element:New(Config)
         TextBoxWidth = 30,
         ThumbSize = 13,
     }
-    local isTouch
     local moveconnection
     local releaseconnection
+    local dragging = false
+    local disposed = false
+    local previousScroll
     local Value = Slider.Value.Default or Slider.Value.Min or 0
     
+    Slider.Value.Min = Slider.Value.Min or 0
+    Slider.Value.Max = Slider.Value.Max or 100
+    Slider.Step = math.max(tonumber(Slider.Step) or 1, 0.001)
+    assert(Slider.Value.Max > Slider.Value.Min, "Slider Max must exceed Min")
     local LastValue = Value
     local delta = (Value - (Slider.Value.Min or 0)) / ((Slider.Value.Max or 100) - (Slider.Value.Min or 0))
     
@@ -30676,7 +30733,7 @@ function Element:New(Config)
         end
     end
     
-    Slider.SliderFrame = __DARKLUA_BUNDLE_MODULES.load('N')({
+    Slider.SliderFrame = __DARKLUA_BUNDLE_MODULES.load('O')({
         Title = Slider.Title,
         Desc = Slider.Desc,
         Parent = Config.Parent,
@@ -30763,55 +30820,75 @@ function Element:New(Config)
     
     local ScrollingFrameParent = Slider.SliderFrame.Parent:IsA("ScrollingFrame") and Slider.SliderFrame.Parent or Slider.SliderFrame.Parent.Parent.Parent
     
-    function Slider:Set(Value, input)
-        if CanCallback then
-            if not Slider.IsFocusing and not HoldingSlider and (not input or (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch)) then
-                Value = math.clamp(Value, Slider.Value.Min or 0, Slider.Value.Max or 100)
-                
-                local delta = math.clamp((Value - (Slider.Value.Min or 0)) / ((Slider.Value.Max or 100) - (Slider.Value.Min or 0)), 0, 1)
-                Value = CalculateValue(Slider.Value.Min + delta * (Slider.Value.Max - Slider.Value.Min))
-    
-                if Value ~= LastValue then
-                    Tween(Slider.UIElements.SliderIcon.Frame, 0.05, {Size = UDim2.new(delta,0,1,0)}):Play()
-                    Slider.UIElements.SliderContainer.TextBox.Text = FormatValue(Value)
-                    Slider.Value.Default = FormatValue(Value)
-                    LastValue = Value
-                    Creator.SafeCallback(Slider.Callback, FormatValue(Value))
-                end
-    
-                if input then
-                    isTouch = (input.UserInputType == Enum.UserInputType.Touch)
-                    ScrollingFrameParent.ScrollingEnabled = false
-                    HoldingSlider = true
-                    moveconnection = game:GetService("RunService").RenderStepped:Connect(function()
-                        local inputPosition = isTouch and input.Position.X or game:GetService("UserInputService"):GetMouseLocation().X
-                        local delta = math.clamp((inputPosition - Slider.UIElements.SliderIcon.AbsolutePosition.X) / Slider.UIElements.SliderIcon.AbsoluteSize.X, 0, 1)
-                        Value = CalculateValue(Slider.Value.Min + delta * (Slider.Value.Max - Slider.Value.Min))
-    
-                        if Value ~= LastValue then
-                            Tween(Slider.UIElements.SliderIcon.Frame, 0.05, {Size = UDim2.new(delta,0,1,0)}):Play()
-                            Slider.UIElements.SliderContainer.TextBox.Text = FormatValue(Value)
-                            Slider.Value.Default = FormatValue(Value)
-                            LastValue = Value
-                            Creator.SafeCallback(Slider.Callback, FormatValue(Value))
-                        end
-                    end)
-                    releaseconnection = game:GetService("UserInputService").InputEnded:Connect(function(endInput)
-                        if (endInput.UserInputType == Enum.UserInputType.MouseButton1 or endInput.UserInputType == Enum.UserInputType.Touch) and input == endInput then
-                            moveconnection:Disconnect()
-                            releaseconnection:Disconnect()
-                            HoldingSlider = false
-                            ScrollingFrameParent.ScrollingEnabled = true
-                            
-                            Tween(Slider.UIElements.SliderIcon.Frame.Thumb, .12, { Size = UDim2.new(0,Slider.ThumbSize,0,Slider.ThumbSize) }, Enum.EasingStyle.Quint, Enum.EasingDirection.InOut):Play()
-                        end
-                    end)
-                end
-            end
+    local function update(value, callback)
+        if disposed or not Slider.SliderFrame.UIElements.Main.Parent then return end
+        value = tonumber(value)
+        if not value or value ~= value or math.abs(value) == math.huge then return end
+        value = math.clamp(CalculateValue(value), Slider.Value.Min, Slider.Value.Max)
+        local delta = (value - Slider.Value.Min) / (Slider.Value.Max - Slider.Value.Min)
+        local changed = value ~= LastValue
+        LastValue = value
+        Slider.Value.Default = FormatValue(value)
+        Slider.UIElements.SliderContainer.TextBox.Text = FormatValue(value)
+        Tween(Slider.UIElements.SliderIcon.Frame, 0.05, { Size = UDim2.new(delta, 0, 1, 0) }):Play()
+        if changed and callback then Creator.SafeCallback(Slider.Callback, FormatValue(value)) end
+    end
+    local function disconnect(connection)
+        if not connection then return end
+        connection:Disconnect()
+        local index = table.find(Creator.Signals, connection)
+        if index then table.remove(Creator.Signals, index) end
+    end
+    local function finish(commit)
+        if not dragging then return end
+        if not Slider.SliderFrame.UIElements.Main.Parent then disposed = true end
+        dragging = false
+        HoldingSlider = false
+        disconnect(moveconnection)
+        disconnect(releaseconnection)
+        moveconnection, releaseconnection = nil, nil
+        if ScrollingFrameParent.Parent then ScrollingFrameParent.ScrollingEnabled = previousScroll end
+        if commit and not disposed and Config.UpdateOnRelease then Creator.SafeCallback(Slider.Callback, FormatValue(LastValue)) end
+        if not disposed then
+            Tween(Slider.UIElements.SliderIcon.Frame.Thumb, .12, { Size = UDim2.fromOffset(Slider.ThumbSize, Slider.ThumbSize) }):Play()
         end
     end
-    
+    function Slider:Set(value, input)
+        if disposed or not CanCallback or Slider.IsFocusing or HoldingSlider then return end
+        if not input then update(value, true); return end
+        local touch = input.UserInputType == Enum.UserInputType.Touch
+        if not touch and input.UserInputType ~= Enum.UserInputType.MouseButton1 then return end
+        if Slider.UIElements.SliderContainer.TextBox:IsFocused() then return end
+        local origin = Slider.UIElements.SliderIcon.AbsolutePosition.X
+        local width = Slider.UIElements.SliderIcon.AbsoluteSize.X
+        if width <= 0 then return end
+        dragging, HoldingSlider = true, true
+        previousScroll = ScrollingFrameParent.ScrollingEnabled
+        ScrollingFrameParent.ScrollingEnabled = false
+        local function move()
+            local x = touch and input.Position.X or game:GetService("UserInputService"):GetMouseLocation().X
+            local delta = math.clamp((x - origin) / width, 0, 1)
+            update(Slider.Value.Min + delta * (Slider.Value.Max - Slider.Value.Min), not Config.UpdateOnRelease)
+        end
+        move()
+        moveconnection = Creator.AddSignal(game:GetService("RunService").RenderStepped, move)
+        releaseconnection = Creator.AddSignal(game:GetService("UserInputService").InputEnded, function(ended)
+            if (touch and ended == input) or (not touch and ended.UserInputType == Enum.UserInputType.MouseButton1) then finish(true) end
+        end)
+    end
+    Creator.AddSignal(Slider.SliderFrame.UIElements.Main.Destroying, function()
+        disposed = true
+        finish(false)
+    end)
+    local destroyFrame = Slider.SliderFrame.Destroy
+    function Slider.SliderFrame:Destroy()
+        disposed = true
+        finish(false)
+        return destroyFrame(self)
+    end
+
     function Slider:SetMax(newMax)
+        if type(newMax) ~= "number" or newMax <= Slider.Value.Min then return false end
         Slider.Value.Max = newMax
         
         local currentValue = tonumber(Slider.Value.Default) or LastValue
@@ -30824,6 +30901,7 @@ function Element:New(Config)
     end
     
     function Slider:SetMin(newMin)
+        if type(newMin) ~= "number" or newMin >= Slider.Value.Max then return false end
         Slider.Value.Min = newMin
         
         local currentValue = tonumber(Slider.Value.Default) or LastValue
@@ -30836,7 +30914,7 @@ function Element:New(Config)
     end
     
     Creator.AddSignal(Slider.UIElements.SliderContainer.TextBox.FocusLost, function(enterPressed)
-        if enterPressed then
+        if not disposed then
             local newValue = tonumber(Slider.UIElements.SliderContainer.TextBox.Text)
             if newValue then
                 Slider:Set(newValue)
@@ -30847,9 +30925,9 @@ function Element:New(Config)
     end)
     
     Creator.AddSignal(Slider.UIElements.SliderContainer.InputBegan, function(input)
-        Slider:Set(Value, input)
+        Slider:Set(LastValue, input)
         
-        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        if dragging then
             Tween(Slider.UIElements.SliderIcon.Frame.Thumb, .12, { Size = UDim2.new(0,Slider.ThumbSize+8,0,Slider.ThumbSize+8) }, Enum.EasingStyle.Quint, Enum.EasingDirection.Out):Play()
         end
     end)
@@ -30857,11 +30935,12 @@ function Element:New(Config)
     return Slider.__type, Slider
 end
 
-return Element end function __DARKLUA_BUNDLE_MODULES.U()
+return Element
+end function __DARKLUA_BUNDLE_MODULES.V()
 local UserInputService = game:GetService("UserInputService")
-local Creator = __DARKLUA_BUNDLE_MODULES.load('k')
+local Creator = __DARKLUA_BUNDLE_MODULES.load('l')
 local New = Creator.New
-local CreateLabel = __DARKLUA_BUNDLE_MODULES.load('H').New
+local CreateLabel = __DARKLUA_BUNDLE_MODULES.load('I').New
 
 local Element = { UICorner = 6, UIPadding = 8 }
 
@@ -30879,7 +30958,7 @@ function Element:New(Config)
     }
     local CanCallback = true
     local PendingKey
-    Keybind.KeybindFrame = __DARKLUA_BUNDLE_MODULES.load('N')({
+    Keybind.KeybindFrame = __DARKLUA_BUNDLE_MODULES.load('O')({
         Title = Keybind.Title, Desc = Keybind.Desc, Parent = Config.Parent,
         TextOffset = 85, Hover = Keybind.CanChange, Tab = Config.Tab,
         Index = Config.Index, Window = Config.Window, ElementTable = Keybind,
@@ -30966,8 +31045,8 @@ function Element:New(Config)
 end
 
 return Element
-end function __DARKLUA_BUNDLE_MODULES.V()
-local Creator = __DARKLUA_BUNDLE_MODULES.load('k')
+end function __DARKLUA_BUNDLE_MODULES.W()
+local Creator = __DARKLUA_BUNDLE_MODULES.load('l')
 local New = Creator.New
 local Tween = Creator.Tween
 
@@ -30977,8 +31056,8 @@ local Element = {
 }
 
 
-local CreateButton = __DARKLUA_BUNDLE_MODULES.load('v').New
-local CreateInput = __DARKLUA_BUNDLE_MODULES.load('w').New
+local CreateButton = __DARKLUA_BUNDLE_MODULES.load('w').New
+local CreateInput = __DARKLUA_BUNDLE_MODULES.load('x').New
 
 function Element:New(Config)
     local Input = {
@@ -30999,11 +31078,11 @@ function Element:New(Config)
     
     local CanCallback = true
 
-    Input.InputFrame = __DARKLUA_BUNDLE_MODULES.load('N')({
+    Input.InputFrame = __DARKLUA_BUNDLE_MODULES.load('O')({
         Title = Input.Title,
         Desc = Input.Desc,
         Parent = Config.Parent,
-        TextOffset = Input.Width,
+        TextOffset = Input.Type == "Input" and Input.Width or 0,
         Hover = false,
         Tab = Config.Tab,
         Index = Config.Index,
@@ -31029,8 +31108,10 @@ function Element:New(Config)
         InputComponent.Position = UDim2.new(1,0,Config.Window.NewElements and 0 or 0.5,0)
         InputComponent.AnchorPoint = Vector2.new(1,Config.Window.NewElements and 0 or 0.5)
     else
-        InputComponent.Size = UDim2.new(1,0,0,42+56+50)
+        InputComponent.Size = UDim2.new(1,0,0,math.max(80, tonumber(Config.Height) or 148))
     end
+    Input.UIElements.Input = InputComponent
+    Input.UIElements.TextBox = InputComponent.Frame.Frame.TextBox
     
     New("UIScale", {
         Parent = InputComponent,
@@ -31074,7 +31155,8 @@ function Element:New(Config)
     return Input.__type, Input
 end
 
-return Element end function __DARKLUA_BUNDLE_MODULES.W()
+return Element
+end function __DARKLUA_BUNDLE_MODULES.X()
 local DropdownMenu = {}
 
 local UserInputService = game:GetService("UserInputService")
@@ -31083,10 +31165,10 @@ local Camera = game:GetService("Workspace").CurrentCamera
 
 local CurrentCamera = workspace.CurrentCamera
 
-local CreateInput = __DARKLUA_BUNDLE_MODULES.load('w').New
+local CreateInput = __DARKLUA_BUNDLE_MODULES.load('x').New
 
 
-local Creator = __DARKLUA_BUNDLE_MODULES.load('k')
+local Creator = __DARKLUA_BUNDLE_MODULES.load('l')
 local New = Creator.New
 local Tween = Creator.Tween
 
@@ -31592,18 +31674,18 @@ function DropdownMenu.New(Config, Dropdown, Element, CanCallback, Type)
 end
 
 
-return DropdownMenu end function __DARKLUA_BUNDLE_MODULES.X()
+return DropdownMenu end function __DARKLUA_BUNDLE_MODULES.Y()
 local UserInputService = game:GetService("UserInputService")
 local Mouse = game:GetService("Players").LocalPlayer:GetMouse()
 local Camera = game:GetService("Workspace").CurrentCamera
 
-local Creator = __DARKLUA_BUNDLE_MODULES.load('k')
+local Creator = __DARKLUA_BUNDLE_MODULES.load('l')
 local New = Creator.New
 local Tween = Creator.Tween
 
-local CreateLabel = __DARKLUA_BUNDLE_MODULES.load('H').New
-local CreateInput = __DARKLUA_BUNDLE_MODULES.load('w').New
-local CreateDropdown = __DARKLUA_BUNDLE_MODULES.load('W').New
+local CreateLabel = __DARKLUA_BUNDLE_MODULES.load('I').New
+local CreateInput = __DARKLUA_BUNDLE_MODULES.load('x').New
+local CreateDropdown = __DARKLUA_BUNDLE_MODULES.load('X').New
 
 local CurrentCamera = workspace.CurrentCamera
 
@@ -31645,7 +31727,7 @@ function Element:New(Config)
     
     local CanCallback = true
     
-    Dropdown.DropdownFrame = __DARKLUA_BUNDLE_MODULES.load('N')({
+    Dropdown.DropdownFrame = __DARKLUA_BUNDLE_MODULES.load('O')({
         Title = Dropdown.Title,
         Desc = Dropdown.Desc,
         Parent = Config.Parent,
@@ -31713,7 +31795,7 @@ function Element:New(Config)
     return Dropdown.__type, Dropdown
 end
 
-return Element end function __DARKLUA_BUNDLE_MODULES.Y()
+return Element end function __DARKLUA_BUNDLE_MODULES.Z()
 
 
 
@@ -31885,14 +31967,14 @@ function highlighter.run(source)
 	return table.concat(highlighted)
 end
 
-return highlighter end function __DARKLUA_BUNDLE_MODULES.Z()
+return highlighter end function __DARKLUA_BUNDLE_MODULES._()
 local Code = {}
 
-local Creator = __DARKLUA_BUNDLE_MODULES.load('k')
+local Creator = __DARKLUA_BUNDLE_MODULES.load('l')
 local New = Creator.New
 local Tween = Creator.Tween
 
-local Highlighter = __DARKLUA_BUNDLE_MODULES.load('Y')
+local Highlighter = __DARKLUA_BUNDLE_MODULES.load('Z')
 
 function Code.New(Code, Title, Parent, Callback, UIScale)
     local CodeModule = {
@@ -32095,12 +32177,12 @@ function Code.New(Code, Title, Parent, Callback, UIScale)
 end
 
 
-return Code end function __DARKLUA_BUNDLE_MODULES._()
-local Creator = __DARKLUA_BUNDLE_MODULES.load('k')
+return Code end function __DARKLUA_BUNDLE_MODULES.aa()
+local Creator = __DARKLUA_BUNDLE_MODULES.load('l')
 local New = Creator.New
 
 
-local CodeComponent = __DARKLUA_BUNDLE_MODULES.load('Z')
+local CodeComponent = __DARKLUA_BUNDLE_MODULES.load('_')
 
 local Element = {}
 
@@ -32157,8 +32239,8 @@ function Element:New(Config)
     return Code.__type, Code
 end
 
-return Element end function __DARKLUA_BUNDLE_MODULES.aa()
-local Creator = __DARKLUA_BUNDLE_MODULES.load('k')
+return Element end function __DARKLUA_BUNDLE_MODULES.ab()
+local Creator = __DARKLUA_BUNDLE_MODULES.load('l')
 local New = Creator.New
 local Tween = Creator.Tween
 
@@ -32171,8 +32253,8 @@ local RenderStepped = RunService.RenderStepped
 local LocalPlayer = Players.LocalPlayer
 local Mouse = LocalPlayer:GetMouse()
 
-local CreateButton = __DARKLUA_BUNDLE_MODULES.load('v').New
-local CreateInput = __DARKLUA_BUNDLE_MODULES.load('w').New
+local CreateButton = __DARKLUA_BUNDLE_MODULES.load('w').New
+local CreateInput = __DARKLUA_BUNDLE_MODULES.load('x').New
 
 local Element = {
     UICorner = 8,
@@ -32201,7 +32283,7 @@ function Element:Colorpicker(Config, Window, OnApply)
 
 	Colorpicker:SetHSVFromRGB(Colorpicker.Default)
     
-    local ColorpickerModule = __DARKLUA_BUNDLE_MODULES.load('x').Init(Window)
+    local ColorpickerModule = __DARKLUA_BUNDLE_MODULES.load('y').Init(Window)
     local ColorpickerFrame = ColorpickerModule.Create()
     
     Colorpicker.ColorpickerFrame = ColorpickerFrame
@@ -32805,7 +32887,7 @@ function Element:New(Config)
     
     if Config.Window.NewElements then Element.UICorner = 14 end
     
-    Colorpicker.ColorpickerFrame = __DARKLUA_BUNDLE_MODULES.load('N')({
+    Colorpicker.ColorpickerFrame = __DARKLUA_BUNDLE_MODULES.load('O')({
         Title = Colorpicker.Title,
         Desc = Colorpicker.Desc,
         Parent = Config.Parent,
@@ -32872,8 +32954,8 @@ function Element:New(Config)
     return Colorpicker.__type, Colorpicker
 end
 
-return Element end function __DARKLUA_BUNDLE_MODULES.ab()
-local Creator = __DARKLUA_BUNDLE_MODULES.load('k')
+return Element end function __DARKLUA_BUNDLE_MODULES.ac()
+local Creator = __DARKLUA_BUNDLE_MODULES.load('l')
 local New = Creator.New
 local Tween = Creator.Tween
 
@@ -33125,8 +33207,8 @@ function Element:New(Config)
     return Section.__type, Section
 end
 
-return Element end function __DARKLUA_BUNDLE_MODULES.ac()
-local Creator = __DARKLUA_BUNDLE_MODULES.load('k')
+return Element end function __DARKLUA_BUNDLE_MODULES.ad()
+local Creator = __DARKLUA_BUNDLE_MODULES.load('l')
 local New = Creator.New
 
 local Element = {}
@@ -33152,8 +33234,8 @@ function Element:New(Config)
     return "Divider", { __type = "Divider", ElementFrame = MainDivider }
 end
 
-return Element end function __DARKLUA_BUNDLE_MODULES.ad()
-local Creator = __DARKLUA_BUNDLE_MODULES.load('k')
+return Element end function __DARKLUA_BUNDLE_MODULES.ae()
+local Creator = __DARKLUA_BUNDLE_MODULES.load('l')
 local New = Creator.New
 
 local Element = {}
@@ -33168,8 +33250,8 @@ function Element:New(Config)
     return "Space", { __type = "Space", ElementFrame = MainSpace}
 end
 
-return Element end function __DARKLUA_BUNDLE_MODULES.ae()
-local Creator = __DARKLUA_BUNDLE_MODULES.load('k')
+return Element end function __DARKLUA_BUNDLE_MODULES.af()
+local Creator = __DARKLUA_BUNDLE_MODULES.load('l')
 local New = Creator.New
 
 local Element = {}
@@ -33235,8 +33317,9 @@ function Element:New(Config)
     return ImageModule.__type, ImageModule
 end
 
-return Element end function __DARKLUA_BUNDLE_MODULES.af()
-local Creator = __DARKLUA_BUNDLE_MODULES.load('k')
+return Element end function __DARKLUA_BUNDLE_MODULES.ag()
+local Text = __DARKLUA_BUNDLE_MODULES.load('a')
+local Creator = __DARKLUA_BUNDLE_MODULES.load('l')
 local New = Creator.New
 
 local Element = {}
@@ -33282,6 +33365,7 @@ function Element:New(Config)
     local gap = math.max(0, tonumber(Config.Gap) or 8)
     local buttonHeight = math.max(32, tonumber(Config.ButtonHeight) or (Creator.MobileMode and 40 or 34))
     local fullWidthButtons = Config.ButtonsFullWidth == true
+    local buttonTopPadding = math.max(0, tonumber(Config.ButtonTopPadding) or 0)
     local connections, buttonConnections, buttonRecords = {}, {}, {}
     local disposed = false
     local imageFrame
@@ -33372,7 +33456,7 @@ function Element:New(Config)
         if width <= 0 then
             return
         end
-        local x, y = 0, 0
+        local x, y = 0, buttonTopPadding
         for _, record in ipairs(buttonRecords) do
             local measured = record.Label.TextBounds.X / scale() + 28
             local desired = record.Config.FullWidth and width or math.min(width, math.max(96, tonumber(record.Config.Width) or measured))
@@ -33420,7 +33504,7 @@ function Element:New(Config)
 
     function Header:SetTag(value)
         Header.Tag = tostring(value or "")
-        tagLabel.Text = Header.Tag
+        tagLabel.Text = Config.RichText == false and Header.Tag or Text.Format(Header.Tag)
         tagLabel.Visible = Header.Tag ~= ""
         relayout()
         return Header
@@ -33476,7 +33560,8 @@ function Element:New(Config)
                     AutoButtonColor = true,
                     BorderSizePixel = 0,
                     Size = UDim2.fromOffset(112, buttonHeight),
-                    ThemeTag = { BackgroundColor3 = "HeaderButton" },
+                    BackgroundColor3 = Text.Color(item.BackgroundColor),
+                    ThemeTag = not Text.Color(item.BackgroundColor) and { BackgroundColor3 = "HeaderButton" } or nil,
                     Parent = actions,
                 })
                 New("UICorner", { CornerRadius = UDim.new(0, 9), Parent = button })
@@ -33491,7 +33576,8 @@ function Element:New(Config)
                     Size = UDim2.new(1, -20, 1, 0),
                     Position = UDim2.fromOffset(10, 0),
                     TextTransparency = Header.Locked and 0.45 or 0,
-                    ThemeTag = { TextColor3 = "HeaderButtonText" },
+                    TextColor3 = Text.Color(item.TextColor),
+                    ThemeTag = not Text.Color(item.TextColor) and { TextColor3 = "HeaderButtonText" } or nil,
                     Parent = button,
                 })
                 table.insert(buttonRecords, { Button = button, Label = buttonLabel, Config = item })
@@ -33538,13 +33624,13 @@ function Element:New(Config)
     local frame = { UIElements = { Main = Main } }
     function frame:SetTitle(value)
         Header.Title = tostring(value or "")
-        titleLabel.Text = Header.Title
+        titleLabel.Text = Config.RichText == false and Header.Title or Text.Format(Header.Title)
         relayout()
         return Header
     end
     function frame:SetDesc(value)
         Header.Desc = tostring(value or "")
-        descLabel.Text = Header.Desc
+        descLabel.Text = Config.RichText == false and Header.Desc or Text.Format(Header.Desc)
         descLabel.Visible = Header.Desc ~= ""
         relayout()
         return Header
@@ -33573,8 +33659,8 @@ function Element:New(Config)
 end
 
 return Element
-end function __DARKLUA_BUNDLE_MODULES.ag()
-local Creator = __DARKLUA_BUNDLE_MODULES.load('k')
+end function __DARKLUA_BUNDLE_MODULES.ah()
+local Creator = __DARKLUA_BUNDLE_MODULES.load('l')
 local New = Creator.New
 
 local Element = {}
@@ -33900,24 +33986,24 @@ function Element:New(Config)
 end
 
 return Element
-end function __DARKLUA_BUNDLE_MODULES.ah()
+end function __DARKLUA_BUNDLE_MODULES.ai()
 return {
     Elements = {
-        Paragraph   = __DARKLUA_BUNDLE_MODULES.load('O'),
-        Button      = __DARKLUA_BUNDLE_MODULES.load('P'),
-        Toggle      = __DARKLUA_BUNDLE_MODULES.load('S'),
-        Slider      = __DARKLUA_BUNDLE_MODULES.load('T'),
-        Keybind     = __DARKLUA_BUNDLE_MODULES.load('U'),
-        Input       = __DARKLUA_BUNDLE_MODULES.load('V'),
-        Dropdown    = __DARKLUA_BUNDLE_MODULES.load('X'),
-        Code        = __DARKLUA_BUNDLE_MODULES.load('_'),
-        Colorpicker = __DARKLUA_BUNDLE_MODULES.load('aa'),
-        Section     = __DARKLUA_BUNDLE_MODULES.load('ab'),
-        Divider     = __DARKLUA_BUNDLE_MODULES.load('ac'),
-        Space       = __DARKLUA_BUNDLE_MODULES.load('ad'),
-        Image       = __DARKLUA_BUNDLE_MODULES.load('ae'),
-        Header      = __DARKLUA_BUNDLE_MODULES.load('af'),
-        QuickAccess = __DARKLUA_BUNDLE_MODULES.load('ag'),
+        Paragraph   = __DARKLUA_BUNDLE_MODULES.load('P'),
+        Button      = __DARKLUA_BUNDLE_MODULES.load('Q'),
+        Toggle      = __DARKLUA_BUNDLE_MODULES.load('T'),
+        Slider      = __DARKLUA_BUNDLE_MODULES.load('U'),
+        Keybind     = __DARKLUA_BUNDLE_MODULES.load('V'),
+        Input       = __DARKLUA_BUNDLE_MODULES.load('W'),
+        Dropdown    = __DARKLUA_BUNDLE_MODULES.load('Y'),
+        Code        = __DARKLUA_BUNDLE_MODULES.load('aa'),
+        Colorpicker = __DARKLUA_BUNDLE_MODULES.load('ab'),
+        Section     = __DARKLUA_BUNDLE_MODULES.load('ac'),
+        Divider     = __DARKLUA_BUNDLE_MODULES.load('ad'),
+        Space       = __DARKLUA_BUNDLE_MODULES.load('ae'),
+        Image       = __DARKLUA_BUNDLE_MODULES.load('af'),
+        Header      = __DARKLUA_BUNDLE_MODULES.load('ag'),
+        QuickAccess = __DARKLUA_BUNDLE_MODULES.load('ah'),
     },
     Load = function(tbl, Container, Elements, Window, WindUI, OnElementCreateFunction, ElementsModule, UIScale, Tab)
         for name, module in next, Elements do
@@ -34041,16 +34127,112 @@ return {
     end,
     
 }
-end function __DARKLUA_BUNDLE_MODULES.ai()
+end function __DARKLUA_BUNDLE_MODULES.aj()
+local HttpService = game:GetService("HttpService")
+local Storage = __DARKLUA_BUNDLE_MODULES.load('i')
+
+local function validate(data)
+    assert(type(data) == "table", "Expected a JSON array or an object with Updates")
+    data = data.Updates or data
+    assert(type(data) == "table" and #data > 0 and #data <= 100, "Expected 1–100 releases")
+    local entries = {}
+    for _, entry in ipairs(data) do
+        assert(type(entry) == "table" and type(entry.Version) == "string" and type(entry.Title) == "string", "Each release needs Version and Title strings")
+        assert(type(entry.Changes) == "table" and #entry.Changes > 0 and #entry.Changes <= 200, "Each release needs a Changes array")
+        local changes = {}
+        for _, change in ipairs(entry.Changes) do
+            assert(type(change) == "string", "Changes must contain strings")
+            table.insert(changes, change)
+        end
+        table.insert(entries, { Version = entry.Version, Title = entry.Title, Changes = changes, TitleColor = entry.TitleColor, DescColor = entry.DescColor })
+    end
+    return entries
+end
+
+return function(tab, window, options)
+    options = options or {}
+    local controller = { Source = options.Source or options.Url, Entries = {}, Status = "idle", Error = nil }
+    local elements = {}
+    local generation = 0
+    local disposed = false
+    local status = tab:Paragraph({ Title = "Release notes", Desc = "Loading updates…" })
+    local cachePath = window.StoragePath .. "/updates-cache.json"
+    local function message(title, desc)
+        status:SetTitle(title)
+        status:SetDesc(desc)
+        status.ElementFrame.Visible = true
+    end
+    function controller:Refresh(source)
+        if disposed or window.Destroyed then return end
+        if source ~= nil then self.Source = source end
+        generation = generation + 1
+        local current = generation
+        local target = self.Source
+        self.Status, self.Error = "loading", nil
+        message("Release notes", "Loading updates…")
+        task.spawn(function()
+            local isUrl = type(target) == "string"
+            local ok, entries = pcall(function()
+                if isUrl then
+                    assert(target:match("^https?://"), "Use an HTTP(S) URL serving JSON")
+                    return validate(HttpService:JSONDecode(game:HttpGet(target)))
+                end
+                return validate(target)
+            end)
+            if disposed or window.Destroyed or generation ~= current then return end
+            local cached = false
+            if not ok and isUrl then
+                local saved = Storage.ReadJSON(cachePath)
+                if saved and saved.Source == target then
+                    local valid, data = pcall(validate, saved.Updates)
+                    if valid then entries, cached = data, true end
+                end
+            end
+            if not ok and not cached then
+                self.Status, self.Error = "error", tostring(entries)
+                message("Updates unavailable", "The update feed could not be loaded. Try refreshing later.")
+                if options.OnError then pcall(options.OnError, self.Error) end
+                return
+            end
+            for _, element in ipairs(elements) do element:Destroy() end
+            table.clear(elements)
+            for _, entry in ipairs(entries) do
+                local lines = {}
+                for _, change in ipairs(entry.Changes) do table.insert(lines, "• " .. change) end
+                table.insert(elements, tab:Paragraph({
+                    Title = "v" .. entry.Version .. "  /  " .. entry.Title,
+                    Desc = table.concat(lines, "\n"),
+                    TitleColor = entry.TitleColor, DescColor = entry.DescColor,
+                }))
+            end
+            self.Entries, self.Status = entries, cached and "cached" or "ready"
+            if cached then message("Saved release notes", "The feed is unavailable. Showing the last saved copy.")
+            else status.ElementFrame.Visible = false end
+            if ok and isUrl then Storage.WriteJSON(cachePath, { Source = target, Updates = entries }) end
+            if options.OnLoaded then pcall(options.OnLoaded, entries, self.Status) end
+        end)
+    end
+    function controller:Destroy()
+        if disposed then return end
+        disposed = true
+        generation = generation + 1
+        for _, element in ipairs(elements) do element:Destroy() end
+        table.clear(elements)
+        status:Destroy()
+    end
+    controller:Refresh()
+    return controller
+end
+end function __DARKLUA_BUNDLE_MODULES.ak()
 local UserInputService = game:GetService("UserInputService")
 local Mouse = game.Players.LocalPlayer:GetMouse()
 
-local Creator = __DARKLUA_BUNDLE_MODULES.load('k')
+local Creator = __DARKLUA_BUNDLE_MODULES.load('l')
 local New = Creator.New
 local Tween = Creator.Tween
 
-local CreateToolTip = __DARKLUA_BUNDLE_MODULES.load('M').New
-local CreateScrollSlider = __DARKLUA_BUNDLE_MODULES.load('I').New
+local CreateToolTip = __DARKLUA_BUNDLE_MODULES.load('N').New
+local CreateScrollSlider = __DARKLUA_BUNDLE_MODULES.load('J').New
 
 
 
@@ -34407,12 +34589,16 @@ function TabModule.New(Config, UIScale)
     
 	
 	
-    Tab.ElementsModule = __DARKLUA_BUNDLE_MODULES.load('ah')
+    Tab.ElementsModule = __DARKLUA_BUNDLE_MODULES.load('ai')
     
     Tab.ElementsModule.Load(Tab, Tab.UIElements.ContainerFrame, Tab.ElementsModule.Elements, Window, WindUI, nil, Tab.ElementsModule, UIScale)
     
     
     
+    function Tab:Changelog(options)
+        return __DARKLUA_BUNDLE_MODULES.load('aj')(Tab, Window, options)
+    end
+
     function Tab:LockAll()
         
         for _, element in next, Window.AllElements do
@@ -34549,15 +34735,15 @@ function TabModule:SelectTab(TabIndex)
 end
 
 return TabModule
-end function __DARKLUA_BUNDLE_MODULES.aj()
+end function __DARKLUA_BUNDLE_MODULES.al()
 local Section = {}
 
 
-local Creator = __DARKLUA_BUNDLE_MODULES.load('k')
+local Creator = __DARKLUA_BUNDLE_MODULES.load('l')
 local New = Creator.New
 local Tween = Creator.Tween
 
-local TabModule = __DARKLUA_BUNDLE_MODULES.load('ai')
+local TabModule = __DARKLUA_BUNDLE_MODULES.load('ak')
 
 function Section.New(SectionConfig, Parent, Folder, UIScale, Window)
     local SectionModule = {
@@ -34724,7 +34910,7 @@ end
 
 
 return Section
-end function __DARKLUA_BUNDLE_MODULES.ak()
+end function __DARKLUA_BUNDLE_MODULES.am()
 return { 
     Tab         = "table-of-contents",
     Paragraph   = "type",
@@ -34736,7 +34922,7 @@ return {
     Dropdown    = "chevrons-up-down",
     Code        = "terminal",
     Colorpicker = "palette",
-}end function __DARKLUA_BUNDLE_MODULES.al()
+}end function __DARKLUA_BUNDLE_MODULES.an()
 local UserInputService = game:GetService("UserInputService")
 
 local SearchBar = {
@@ -34745,7 +34931,7 @@ local SearchBar = {
 }
 
 
-local Creator = __DARKLUA_BUNDLE_MODULES.load('k')
+local Creator = __DARKLUA_BUNDLE_MODULES.load('l')
 local New = Creator.New
 local Tween = Creator.Tween
 
@@ -34758,7 +34944,7 @@ function SearchBar.new(TabModule, Parent, OnClose)
         Width = 400,
         MaxHeight = 380,
         
-        Icons = __DARKLUA_BUNDLE_MODULES.load('ak')
+        Icons = __DARKLUA_BUNDLE_MODULES.load('am')
     }
     
     
@@ -35261,26 +35447,26 @@ function SearchBar.new(TabModule, Parent, OnClose)
     return SearchBarModule
 end
 
-return SearchBar end function __DARKLUA_BUNDLE_MODULES.am()
+return SearchBar end function __DARKLUA_BUNDLE_MODULES.ao()
 
 local UserInputService = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
 
 local CurrentCamera = workspace.CurrentCamera
 
-local Acrylic = __DARKLUA_BUNDLE_MODULES.load('C')
+local Acrylic = __DARKLUA_BUNDLE_MODULES.load('D')
 
-local Creator = __DARKLUA_BUNDLE_MODULES.load('k')
+local Creator = __DARKLUA_BUNDLE_MODULES.load('l')
 local New = Creator.New
 local Tween = Creator.Tween
 
 
-local CreateLabel = __DARKLUA_BUNDLE_MODULES.load('H').New
-local CreateButton = __DARKLUA_BUNDLE_MODULES.load('v').New
-local CreateScrollSlider = __DARKLUA_BUNDLE_MODULES.load('I').New
-local Tag = __DARKLUA_BUNDLE_MODULES.load('J')
+local CreateLabel = __DARKLUA_BUNDLE_MODULES.load('I').New
+local CreateButton = __DARKLUA_BUNDLE_MODULES.load('w').New
+local CreateScrollSlider = __DARKLUA_BUNDLE_MODULES.load('J').New
+local Tag = __DARKLUA_BUNDLE_MODULES.load('K')
 
-local ConfigManager = __DARKLUA_BUNDLE_MODULES.load('K')
+local ConfigManager = __DARKLUA_BUNDLE_MODULES.load('L')
 
 local Notified = false
 
@@ -35292,6 +35478,8 @@ return function(Config)
         IconSize = Config.IconSize or 22,
         IconThemed = Config.IconThemed,
         Folder = Config.Folder,
+        SubFolder = Config.SubFolder,
+        StoragePath = Config.StoragePath,
         Resizable = Config.Resizable ~= false,
         Background = Config.Background,
         BackgroundImageTransparency = Config.BackgroundImageTransparency or 0,
@@ -35745,7 +35933,7 @@ return function(Config)
         IsVideoBG = true
     
         if string.find(BGVideo, "http") then
-            local videoPath = Window.Folder .. "/assets/." .. SanitizeFilename(BGVideo) .. ".webm"
+            local videoPath = Window.StoragePath .. "/assets/." .. SanitizeFilename(BGVideo) .. ".webm"
             if not isfile(videoPath) then
                 local success, result = pcall(function()
                     local response = Creator.Request({Url = BGVideo, Method="GET", Headers = { ["User-Agent"] = "Roblox/Exploit" }})
@@ -35781,7 +35969,7 @@ return function(Config)
         BGImage:Play()
     
     elseif BGImageUrl then
-        local imagePath = Window.Folder .. "/assets/." .. SanitizeFilename(BGImageUrl) .. GetImageExtension(BGImageUrl)
+        local imagePath = Window.StoragePath .. "/assets/." .. SanitizeFilename(BGImageUrl) .. GetImageExtension(BGImageUrl)
         if not isfile(imagePath) then
             local success, result = pcall(function()
                 local response = Creator.Request({Url = BGImageUrl, Method="GET", Headers = { ["User-Agent"] = "Roblox/Exploit" }})
@@ -36170,7 +36358,7 @@ New("Frame", {
     
     
     
-    Window.OpenButtonMain = __DARKLUA_BUNDLE_MODULES.load('L').New(Window)
+    Window.OpenButtonMain = __DARKLUA_BUNDLE_MODULES.load('M').New(Window)
 
     
     task.spawn(function()
@@ -36617,8 +36805,8 @@ New("Frame", {
     end
     
     
-    local TabModuleMain = __DARKLUA_BUNDLE_MODULES.load('ai')
-    local SectionModule = __DARKLUA_BUNDLE_MODULES.load('aj')
+    local TabModuleMain = __DARKLUA_BUNDLE_MODULES.load('ak')
+    local SectionModule = __DARKLUA_BUNDLE_MODULES.load('al')
     local TabModule = TabModuleMain.Init(Window, Config.WindUI, Config.Parent.Parent.ToolTips)
     TabModule:OnChange(function(t) Window.CurrentTab = t end)
     
@@ -36673,7 +36861,7 @@ New("Frame", {
         return MainDivider
     end
     
-    local DialogModule = __DARKLUA_BUNDLE_MODULES.load('x').Init(Window, nil)
+    local DialogModule = __DARKLUA_BUNDLE_MODULES.load('y').Init(Window, nil)
     function Window:Dialog(DialogConfig)
         local DialogTable = {
             Title = DialogConfig.Title or "Dialog",
@@ -36998,7 +37186,7 @@ New("Frame", {
     
     
     if not Window.HideSearchBar then
-        local SearchBar = __DARKLUA_BUNDLE_MODULES.load('al')
+        local SearchBar = __DARKLUA_BUNDLE_MODULES.load('an')
         local IsOpen = false
         local CurrentSearchBar
     
@@ -37061,8 +37249,8 @@ New("Frame", {
 
     return Window
 end
-end function __DARKLUA_BUNDLE_MODULES.an()
-local Storage = __DARKLUA_BUNDLE_MODULES.load('h')
+end function __DARKLUA_BUNDLE_MODULES.ap()
+local Storage = __DARKLUA_BUNDLE_MODULES.load('i')
 
 return function(window, tab)
     local manager = window.ConfigManager
@@ -37149,7 +37337,7 @@ return function(window, tab)
     end)
     return controls
 end
-end function __DARKLUA_BUNDLE_MODULES.ao()
+end function __DARKLUA_BUNDLE_MODULES.aq()
 return function(window, options)
     local config = table.clone(options or {})
     config.Title = config.Title or "Settings"
@@ -37164,7 +37352,6 @@ return function(window, options)
     end
     table.sort(otherThemes)
     for _, name in ipairs(otherThemes) do table.insert(themeNames, name) end
-    tab:Header({ Tag = "MAKE IT YOURS", Title = config.Title, Desc = "A familiar feel. A little more you." })
     tab:Section({ Title = "APPEARANCE" })
     tab.Controls.Theme = tab:Dropdown({
         Title = "Theme", Values = themeNames, Value = settings.Theme, Flag = "ui.theme",
@@ -37175,7 +37362,7 @@ return function(window, options)
         Callback = function(value) window:ToggleTransparency(value) end,
     })
     tab.Controls.Scale = tab:Slider({
-        Title = "Interface scale", Desc = "Window size (%)", Step = 5, Flag = "ui.scale",
+        Title = "Interface scale", Desc = "Window size (%). Applies when you release.", UpdateOnRelease = true, Step = 5, Flag = "ui.scale",
         Value = { Min = 30, Max = 120, Default = settings.Scale },
         Callback = function(value) window:SetUIScale(tonumber(value) / 100) end,
     })
@@ -37190,11 +37377,11 @@ return function(window, options)
         Callback = function(value) window:SetNotifications(value) end,
     })
     tab:Button({ Title = "Center window", Icon = "scan", Callback = function() window:SetToTheCenter() end })
-    if config.Configs then tab.Controls.Configs = __DARKLUA_BUNDLE_MODULES.load('an')(window, tab) end
+    if config.Configs then tab.Controls.Configs = __DARKLUA_BUNDLE_MODULES.load('ap')(window, tab) end
     return tab
 end
-end function __DARKLUA_BUNDLE_MODULES.ap()
-local Creator = __DARKLUA_BUNDLE_MODULES.load('k')
+end function __DARKLUA_BUNDLE_MODULES.ar()
+local Creator = __DARKLUA_BUNDLE_MODULES.load('l')
 local RunService = game:GetService("RunService")
 local MarketplaceService = game:GetService("MarketplaceService")
 local Stats = game:GetService("Stats")
@@ -37229,8 +37416,8 @@ return function(window, tab, options)
     end)
     return paragraph
 end
-end function __DARKLUA_BUNDLE_MODULES.aq()
-local Creator = __DARKLUA_BUNDLE_MODULES.load('k')
+end function __DARKLUA_BUNDLE_MODULES.as()
+local Creator = __DARKLUA_BUNDLE_MODULES.load('l')
 local HttpService = game:GetService("HttpService")
 
 return function(window, tab, options)
@@ -37280,17 +37467,90 @@ return function(window, tab, options)
     end
     return controller
 end
+end function __DARKLUA_BUNDLE_MODULES.at()
+local Creator = __DARKLUA_BUNDLE_MODULES.load('l')
+local HttpService = game:GetService("HttpService")
+
+return function(window, tab, options)
+    options = options or {}
+    local controller = { Busy = false, Status = "idle" }
+    local lastSent = -math.huge
+    local cooldown = math.max(0, tonumber(options.Cooldown) or 15)
+    local function notify(title, text)
+        if not window.Destroyed then window.Library:Notify({ Title = title, Content = text, Force = true }) end
+    end
+    controller.Message = tab:Input({
+        Title = options.Title or "Feedback",
+        Desc = options.Desc or "Tell us what could be better, then press Send.",
+        Type = "Textarea", Height = options.Height or 160, Value = "",
+        Placeholder = options.Placeholder or "Write your feedback here…",
+    })
+    function controller:Submit()
+        if self.Busy or window.Destroyed then return false end
+        local text = self.Message.UIElements.TextBox.Text:match("^%s*(.-)%s*$")
+        local url = options.Url or ""
+        if text == "" then notify("Feedback", "Write your feedback first."); return false end
+        if (utf8.len(text) or #text) > 4000 then notify("Feedback", "Keep your feedback under 4,000 characters."); return false end
+        if type(url) ~= "string" or not url:match("^https?://") then
+            notify("Feedback", "The feedback URL has not been configured yet."); return false
+        end
+        if type(Creator.Request) ~= "function" then notify("Feedback", "HTTP requests are unavailable in this client."); return false end
+        local remaining = cooldown - (os.clock() - lastSent)
+        if remaining > 0 then notify("Feedback", "Please wait " .. math.ceil(remaining) .. " seconds before sending again."); return false end
+        if url:match("^https://discord%.com/api/") and not url:find("wait=", 1, true) then
+            url = url .. (url:find("?", 1, true) and "&" or "?") .. "wait=true"
+        end
+        self.Busy, self.Status = true, "sending"
+        self.Button:Lock()
+        self.Button:SetTitle("Sending…")
+        local sentDraft = self.Message.UIElements.TextBox.Text
+        task.spawn(function()
+            local ok, response = pcall(Creator.Request, {
+                Url = url, Method = "POST", Headers = { ["Content-Type"] = "application/json" },
+                Body = HttpService:JSONEncode({
+                    username = window.Title,
+                    allowed_mentions = { parse = {} },
+                    embeds = { {
+                        title = "Feedback", description = text, color = 11032055,
+                        footer = { text = window.Title }, timestamp = os.date("!%Y-%m-%dT%H:%M:%SZ"),
+                    } },
+                }),
+            })
+            local status = ok and type(response) == "table" and tonumber(response.StatusCode or response.Status or response.status_code)
+            local success = status and status >= 200 and status < 300
+            self.Busy, self.Status = false, success and "sent" or "error"
+            if success then lastSent = os.clock() end
+            if window.Destroyed or not self.Message.ElementFrame.Parent then return end
+            self.Button:Unlock()
+            self.Button:SetTitle(options.SendTitle or "Send feedback")
+            if success then
+                if self.Message.UIElements.TextBox.Text == sentDraft then self.Message:Set("") end
+                notify("Feedback sent", "Thanks for helping improve " .. window.Title .. ".")
+                Creator.SafeCallback(options.OnSent)
+            else
+                notify("Feedback", status == 429 and "Too many requests. Please try again later." or "Your feedback could not be sent. Your draft is still here.")
+                Creator.SafeCallback(options.OnError, status)
+            end
+        end)
+        return true
+    end
+    controller.Button = tab:Button({
+        Title = options.SendTitle or "Send feedback", Icon = "send",
+        Callback = function() controller:Submit() end,
+    })
+    return controller
+end
 end end
 local WindUI = {
     Name = "VibeUI",
     UpstreamVersion = "1.6.56",
-    StorageRoot = "VibeScripts",
+    StorageRoot = "VibeUI",
     SourceKind = "local-fork",
     Window = nil,
     Theme = nil,
-    Creator = __DARKLUA_BUNDLE_MODULES.load('k'),
-    LocalizationModule = __DARKLUA_BUNDLE_MODULES.load('l'),
-    NotificationModule = __DARKLUA_BUNDLE_MODULES.load('m'),
+    Creator = __DARKLUA_BUNDLE_MODULES.load('l'),
+    LocalizationModule = __DARKLUA_BUNDLE_MODULES.load('m'),
+    NotificationModule = __DARKLUA_BUNDLE_MODULES.load('n'),
     Themes = nil,
     Transparent = false,
     
@@ -37301,26 +37561,26 @@ local WindUI = {
     ConfigManager = nil,
     Version = "0.0.0",
     
-    Services = __DARKLUA_BUNDLE_MODULES.load('q'),
+    Services = __DARKLUA_BUNDLE_MODULES.load('r'),
     
     OnThemeChangeFunction = nil,
 }
 
 
 local HttpService = game:GetService("HttpService")
-local Storage = __DARKLUA_BUNDLE_MODULES.load('h')
-local Assets = __DARKLUA_BUNDLE_MODULES.load('i')
-local Preferences = __DARKLUA_BUNDLE_MODULES.load('r')
-local Runtime = __DARKLUA_BUNDLE_MODULES.load('s')
-local WindowDefaults = __DARKLUA_BUNDLE_MODULES.load('t')
+local Storage = __DARKLUA_BUNDLE_MODULES.load('i')
+local Assets = __DARKLUA_BUNDLE_MODULES.load('j')
+local Preferences = __DARKLUA_BUNDLE_MODULES.load('s')
+local Runtime = __DARKLUA_BUNDLE_MODULES.load('t')
+local WindowDefaults = __DARKLUA_BUNDLE_MODULES.load('u')
 
 
-local Package = HttpService:JSONDecode(__DARKLUA_BUNDLE_MODULES.load('u'))
+local Package = HttpService:JSONDecode(__DARKLUA_BUNDLE_MODULES.load('v'))
 if Package then
     WindUI.Version = Package.version
 end
 
-local KeySystem = __DARKLUA_BUNDLE_MODULES.load('y')
+local KeySystem = __DARKLUA_BUNDLE_MODULES.load('z')
 
 local ServicesModule = WindUI.Services
 
@@ -37331,7 +37591,7 @@ local New = Creator.New
 local Tween = Creator.Tween
 
 
-local Acrylic = __DARKLUA_BUNDLE_MODULES.load('C')
+local Acrylic = __DARKLUA_BUNDLE_MODULES.load('D')
 
 local LocalPlayer = game:GetService("Players") and game:GetService("Players").LocalPlayer or nil
 
@@ -37512,11 +37772,11 @@ end
 
 function WindUI:Popup(PopupConfig)
     PopupConfig.WindUI = WindUI
-    return __DARKLUA_BUNDLE_MODULES.load('D').new(PopupConfig)
+    return __DARKLUA_BUNDLE_MODULES.load('E').new(PopupConfig)
 end
 
 
-WindUI.Themes = __DARKLUA_BUNDLE_MODULES.load('G')(WindUI)
+WindUI.Themes = __DARKLUA_BUNDLE_MODULES.load('H')(WindUI)
 
 Creator.Themes = WindUI.Themes
 
@@ -37525,17 +37785,24 @@ WindUI:SetTheme("Vibe Midnight")
 WindUI:SetLanguage(Creator.Language)
 
 
+function WindUI:Text(value, color)
+    return __DARKLUA_BUNDLE_MODULES.load('a')
+.Colored(value, color)
+end
+
 function WindUI:CreateWindow(Config)
-    local CreateWindow = __DARKLUA_BUNDLE_MODULES.load('am')
+    local CreateWindow = __DARKLUA_BUNDLE_MODULES.load('ao')
     if WindUI.Window then
         warn("You cannot create more than one window")
         return
     end
     Config = WindowDefaults(Config)
-    local folderPath = Storage.Window(Config.Folder)
+    local folderPath = Storage.Window(Config.Folder, Config.SubFolder)
+    Config.StoragePath = folderPath
+    Creator.StoragePath = folderPath
     Runtime.Prepare(folderPath)
     local settings, hadSaved = Preferences.Load(Config, WindUI, folderPath)
-    Config.Icon = Assets.Resolve(Config.Icon, Config.Folder) or "sparkles"
+    Config.Icon = Assets.Resolve(Config.Icon, folderPath) or "sparkles"
     Config.WindUI = WindUI
     Config.Parent = WindUI.ScreenGui.Window
     
@@ -37560,7 +37827,7 @@ function WindUI:CreateWindow(Config)
             KeySystem.new(Config, Filename, function(c) CanLoadWindow = c end)
         end
     
-        local keyPath = WindUI.StorageRoot .. "/" .. (Config.Folder or "Temp") .. "/" .. Filename .. ".key"
+        local keyPath = folderPath .. "/" .. Filename .. ".key"
     
         if not Config.KeySystem.API then
             if Config.KeySystem.SaveKey and isfile(keyPath) then
@@ -37618,13 +37885,16 @@ function WindUI:CreateWindow(Config)
     Preferences.Attach(Window, WindUI, Config, settings, hadSaved, folderPath)
     Runtime.Register(folderPath, Window)
     function Window:SettingsTab(options)
-        return __DARKLUA_BUNDLE_MODULES.load('ao')(Window, options)
+        return __DARKLUA_BUNDLE_MODULES.load('aq')(Window, options)
     end
     function Window:SessionStats(tab, options)
-        return __DARKLUA_BUNDLE_MODULES.load('ap')(Window, tab, options)
+        return __DARKLUA_BUNDLE_MODULES.load('ar')(Window, tab, options)
     end
     function Window:Community(tab, options)
-        return __DARKLUA_BUNDLE_MODULES.load('aq')(Window, tab, options)
+        return __DARKLUA_BUNDLE_MODULES.load('as')(Window, tab, options)
+    end
+    function Window:Feedback(tab, options)
+        return __DARKLUA_BUNDLE_MODULES.load('at')(Window, tab, options)
     end
     function Window:CopyText(link, options)
         options = options or {}

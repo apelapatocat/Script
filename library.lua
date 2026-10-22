@@ -28884,6 +28884,7 @@ end
 return Tag
 end function __DARKLUA_BUNDLE_MODULES.N()
 local TweenService = game:GetService("TweenService")
+local ContentProvider = game:GetService("ContentProvider")
 local Creator = __DARKLUA_BUNDLE_MODULES.load('l')
 local Text = __DARKLUA_BUNDLE_MODULES.load('a')
 local Intro = {}
@@ -28894,13 +28895,13 @@ end
 
 function Intro.Start(window, config)
     local options = type(config.Intro) == "table" and config.Intro or {}
-    local duration = tonumber(options.Duration) or 1.45
-    if duration ~= duration then duration = 1.45 end
+    local duration = tonumber(options.Duration) or 2.1
+    if duration ~= duration then duration = 2.1 end
     duration = math.clamp(duration, 0.6, 3)
     local accent = Text.Color(options.Color) or Color3.fromHex("#A855F7")
-    local light = accent:Lerp(Color3.new(1, 1, 1), 0.6)
-    local dark = Color3.fromHex("#0D0914")
-    local state = { Running = true, Completed = false, Cancelled = false, Duration = duration, UIElements = {} }
+    local light = accent:Lerp(Color3.new(1, 1, 1), 0.7)
+    local white = Color3.fromHex("#FAF5FF")
+    local state = { Running = true, Completed = false, Cancelled = false, Revealed = false, Phase = "ignite", Duration = duration, UIElements = {} }
     local connections, tweens, threads = {}, {}, {}
     local gui
     window.Intro = state
@@ -28912,7 +28913,7 @@ function Intro.Start(window, config)
         for _, connection in ipairs(connections) do connection:Disconnect() end
         for _, tween in ipairs(tweens) do tween:Cancel() end
         for _, thread in ipairs(threads) do
-            if thread ~= coroutine.running() and coroutine.status(thread) ~= "dead" then task.cancel(thread) end
+            if thread ~= coroutine.running() and coroutine.status(thread) ~= "dead" then pcall(task.cancel, thread) end
         end
         table.clear(connections)
         table.clear(tweens)
@@ -28927,8 +28928,11 @@ function Intro.Start(window, config)
     function state:Finish()
         if not self.Running then return end
         self.Completed = true
+        self.Phase = "complete"
+        local reveal = not self.Revealed
+        self.Revealed = true
         cleanup()
-        if not window.Destroyed then window:Open() end
+        if reveal and not window.Destroyed then window:Open() end
     end
     local function new(class, properties, parent)
         local object = Instance.new(class)
@@ -28936,15 +28940,24 @@ function Intro.Start(window, config)
         object.Parent = parent
         return object
     end
-    local function tween(object, time, properties, style)
-        local animation = TweenService:Create(object, TweenInfo.new(time, style or Enum.EasingStyle.Quint, Enum.EasingDirection.Out), properties)
+    local function tween(object, time, properties, style, direction)
+        local animation = TweenService:Create(object, TweenInfo.new(time, style or Enum.EasingStyle.Quint, direction or Enum.EasingDirection.Out), properties)
         table.insert(tweens, animation)
         animation:Play()
     end
-    local function later(delay, callback)
-        table.insert(threads, task.delay(delay, function()
+    local function later(time, callback)
+        table.insert(threads, task.delay(time, function()
             if state.Running and not window.Destroyed then callback() end
         end))
+    end
+    local function gradient(object, color, vertical)
+        new("UIGradient", {
+            Color = color or ColorSequence.new(accent, light), Rotation = vertical and 90 or 0,
+            Transparency = NumberSequence.new({
+                NumberSequenceKeypoint.new(0, 1), NumberSequenceKeypoint.new(0.25, 0.2),
+                NumberSequenceKeypoint.new(0.5, 0), NumberSequenceKeypoint.new(0.75, 0.2), NumberSequenceKeypoint.new(1, 1),
+            }),
+        }, object)
     end
 
     gui = new("ScreenGui", {
@@ -28959,116 +28972,200 @@ function Intro.Start(window, config)
     local holder = new("Frame", {
         Name = "Container", Size = UDim2.fromScale(1, 1), BackgroundTransparency = 1, Active = false,
     }, gui)
-    local center = new("Frame", {
-        Name = "Center", AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.5),
-        Size = UDim2.fromOffset(380, 304), BackgroundTransparency = 1,
+    local backdrop = new("Frame", {
+        Name = "Backdrop", Size = UDim2.fromScale(1, 1), BackgroundColor3 = Color3.fromHex("#0B0616"),
+        BackgroundTransparency = 1, BorderSizePixel = 0, Active = false,
     }, holder)
-    local fit = new("UIScale", { Scale = 1 }, center)
-    local card = new("CanvasGroup", {
-        Name = "Card", Size = UDim2.fromScale(1, 1), Position = UDim2.fromOffset(0, 10),
-        BackgroundColor3 = dark, GroupTransparency = 1, BorderSizePixel = 0,
-    }, center)
-    new("UICorner", { CornerRadius = UDim.new(0, 24) }, card)
-    new("UIGradient", { Rotation = 35, Color = ColorSequence.new(dark:Lerp(accent, 0.16), dark) }, card)
-    new("UIStroke", { ApplyStrokeMode = Enum.ApplyStrokeMode.Border, Color = accent, Transparency = 0.5, Thickness = 1 }, card)
-    local pop = new("UIScale", { Scale = 0.9 }, card)
-    card.AnchorPoint = Vector2.new(0.5, 0.5)
-    card.Position = UDim2.new(0.5, 0, 0.5, 10)
-
-    local glow = new("ImageLabel", {
-        Name = "Glow", Image = "rbxassetid://8992230677", ImageColor3 = accent, ImageTransparency = 0.55,
-        ScaleType = Enum.ScaleType.Slice, SliceCenter = Rect.new(99, 99, 99, 99),
-        AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.new(0.5, 0, 0, 113),
-        Size = UDim2.fromOffset(230, 230), BackgroundTransparency = 1,
-    }, card)
-    local orbit = new("Frame", {
-        Name = "Orbit", BackgroundTransparency = 1, AnchorPoint = Vector2.new(0.5, 0.5),
-        Position = UDim2.new(0.5, 0, 0, 113), Size = UDim2.fromOffset(166, 166), Rotation = -70,
-    }, card)
-    new("UICorner", { CornerRadius = UDim.new(1, 0) }, orbit)
-    local ring = new("UIStroke", { Color = Color3.new(1, 1, 1), Thickness = 1.5, Transparency = 0.15 }, orbit)
-    new("UIGradient", {
-        Color = ColorSequence.new(accent, light), Rotation = 45,
-        Transparency = NumberSequence.new({
-            NumberSequenceKeypoint.new(0, 0), NumberSequenceKeypoint.new(0.3, 0.2),
-            NumberSequenceKeypoint.new(0.5, 1), NumberSequenceKeypoint.new(0.7, 0.2), NumberSequenceKeypoint.new(1, 0),
-        }),
-    }, ring)
-    for index, point in ipairs({ Vector2.new(0.5, 0), Vector2.new(0.5, 1) }) do
-        local spark = new("Frame", {
-            Name = "Spark" .. index, AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(point.X, point.Y),
-            Size = UDim2.fromOffset(index == 1 and 6 or 4, index == 1 and 6 or 4), BackgroundColor3 = light, BorderSizePixel = 0,
-        }, orbit)
-        new("UICorner", { CornerRadius = UDim.new(1, 0) }, spark)
+    local stage = new("Frame", {
+        Name = "Stage", AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.5),
+        Size = UDim2.fromOffset(520, 390), BackgroundTransparency = 1, ZIndex = 2,
+    }, holder)
+    local fit = new("UIScale", { Scale = 1 }, stage)
+    local effects = new("Frame", {
+        Name = "Energy", AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.new(0.5, 0, 0, 143),
+        Size = UDim2.fromOffset(360, 300), BackgroundTransparency = 1,
+    }, stage)
+    local effectFit = new("UIScale", { Scale = 1 }, effects)
+    local glow = new("Frame", { Name = "Glow", Size = UDim2.fromScale(1, 1), BackgroundTransparency = 1 }, effects)
+    for index = 1, 14 do
+        local disc = new("Frame", {
+            Name = "Light" .. index, AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.5),
+            Size = UDim2.fromOffset(350 - index * 17, 350 - index * 17), BorderSizePixel = 0,
+            BackgroundColor3 = accent:Lerp(light, index / 50), BackgroundTransparency = 1,
+        }, glow)
+        new("UICorner", { CornerRadius = UDim.new(1, 0) }, disc)
+        tween(disc, duration * 0.3, { BackgroundTransparency = 0.975 - index * 0.001 })
     end
+    local diamond = new("Frame", {
+        Name = "Diamond", AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.5),
+        Size = UDim2.fromOffset(158, 158), BackgroundTransparency = 1, Rotation = 28,
+    }, effects)
+    new("UICorner", { CornerRadius = UDim.new(0, 24) }, diamond)
+    local diamondStroke = new("UIStroke", { Color = accent, Thickness = 1, Transparency = 1 }, diamond)
+    local diamondGradient = new("UIGradient", { Color = ColorSequence.new(accent, light), Rotation = 60 }, diamondStroke)
+    local line = new("Frame", {
+        Name = "Ignition", AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.5),
+        Size = UDim2.fromOffset(0, 2), Rotation = -34, BackgroundColor3 = white, BackgroundTransparency = 0, BorderSizePixel = 0,
+        ZIndex = 4,
+    }, effects)
+    gradient(line, ColorSequence.new(light, white))
+    local slashGlow = new("Frame", {
+        Name = "SlashGlow", AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.5),
+        Size = UDim2.fromOffset(0, 12), Rotation = -34, BackgroundColor3 = accent, BackgroundTransparency = 0.55, BorderSizePixel = 0,
+        ZIndex = 3,
+    }, effects)
+    gradient(slashGlow)
     local logo = new("Frame", {
-        Name = "Logo", AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.new(0.5, 0, 0, 113),
-        Size = UDim2.fromOffset(142, 142), BackgroundTransparency = 1, Rotation = -9,
-    }, card)
-    local logoScale = new("UIScale", { Scale = 0.75 }, logo)
+        Name = "Logo", AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.new(0.5, 0, 0, 143),
+        Size = UDim2.fromOffset(260, 260), BackgroundTransparency = 1, Rotation = -7, ZIndex = 3,
+    }, stage)
+    local logoScale = new("UIScale", { Scale = 0.68 }, logo)
     local fallback = new("TextLabel", {
-        Name = "Monogram", Text = "VS", TextSize = 62, TextColor3 = light,
-        FontFace = Font.new(Creator.Font, Enum.FontWeight.Bold), Size = UDim2.fromScale(1, 1), BackgroundTransparency = 1,
+        Name = "Monogram", Text = "VS", TextSize = 100, TextColor3 = white, TextTransparency = 1,
+        FontFace = Font.new(Creator.Font, Enum.FontWeight.Heavy), Size = UDim2.fromScale(1, 1), BackgroundTransparency = 1,
     }, logo)
-    new("UIGradient", { Color = ColorSequence.new(Color3.new(1, 1, 1), accent), Rotation = 70 }, fallback)
+    local echo = new("ImageLabel", {
+        Name = "LogoEcho", Size = UDim2.fromScale(1, 1), Position = UDim2.fromOffset(-12, 5),
+        BackgroundTransparency = 1, ImageColor3 = accent, ImageTransparency = 1, ScaleType = Enum.ScaleType.Fit,
+    }, logo)
     local image = new("ImageLabel", {
-        Name = "Image", Size = UDim2.fromScale(1, 1), BackgroundTransparency = 1, ImageTransparency = 1, ScaleType = Enum.ScaleType.Fit,
+        Name = "Image", Size = UDim2.fromScale(1, 1), BackgroundTransparency = 1, ImageColor3 = Color3.new(1, 1, 1),
+        ImageTransparency = 1, ScaleType = Enum.ScaleType.Fit, ZIndex = 2,
     }, logo)
-    local imageSource = config.Icon
-    if type(imageSource) == "string" and not Creator.Icon(imageSource) then
-        local function showImage()
-            if state.Running and image.IsLoaded then
-                fallback.Visible = false
-                tween(image, 0.15, { ImageTransparency = 0 })
-            end
+    local logoReady, revealStarted = false, false
+    local function showLogo()
+        if not state.Running or state.Phase == "exit" or not image.IsLoaded then return end
+        logoReady = true
+        state.LogoLoaded = true
+        if revealStarted then
+            fallback.Visible = false
+            tween(image, duration * 0.1, { ImageTransparency = 0 })
         end
-        table.insert(connections, image:GetPropertyChangedSignal("IsLoaded"):Connect(showImage))
-        image.Image = imageSource
-        showImage()
     end
+    if type(config.Icon) == "string" and not Creator.Icon(config.Icon) then
+        table.insert(connections, image:GetPropertyChangedSignal("IsLoaded"):Connect(showLogo))
+        image.Image = config.Icon
+        echo.Image = config.Icon
+        showLogo()
+        table.insert(threads, task.defer(function()
+            pcall(function()
+                ContentProvider:PreloadAsync({ image }, function(_, status) state.AssetStatus = status.Name end)
+            end)
+            showLogo()
+        end))
+    end
+    local titleClip = new("Frame", {
+        Name = "TitleReveal", BackgroundTransparency = 1, Position = UDim2.new(0, 16, 0, 286),
+        Size = UDim2.new(1, -32, 0, 44), ClipsDescendants = true,
+    }, stage)
     local title = new("TextLabel", {
-        Name = "Title", Text = tostring(options.Title or window.Title), TextColor3 = Color3.fromHex("#F4ECFF"),
-        FontFace = Font.new(Creator.Font, Enum.FontWeight.Bold), TextSize = 28, TextScaled = true,
-        BackgroundTransparency = 1, Position = UDim2.fromOffset(24, 210), Size = UDim2.new(1, -48, 0, 36),
-    }, card)
-    new("UITextSizeConstraint", { MinTextSize = 14, MaxTextSize = 28 }, title)
+        Name = "Title", Text = tostring(options.Title or window.Title), TextColor3 = white, TextTransparency = 1,
+        FontFace = Font.new(Creator.Font, Enum.FontWeight.Bold), TextSize = 36, TextScaled = true,
+        BackgroundTransparency = 1, Position = UDim2.fromOffset(0, 44), Size = UDim2.fromScale(1, 1),
+    }, titleClip)
+    new("UITextSizeConstraint", { MinTextSize = 18, MaxTextSize = 36 }, title)
     local subtitle = new("TextLabel", {
         Name = "Subtitle", Text = tostring(options.Subtitle or (window.Author ~= "" and window.Author) or "Your scripts. Your vibe."),
-        TextColor3 = Color3.fromHex("#C3B4D6"), TextSize = 15, TextTruncate = Enum.TextTruncate.AtEnd,
+        TextColor3 = Color3.fromHex("#D9C9ED"), TextSize = 15, TextScaled = true, TextTransparency = 1, TextTruncate = Enum.TextTruncate.AtEnd,
         FontFace = Font.new(Creator.Font), BackgroundTransparency = 1,
-        Position = UDim2.fromOffset(24, 249), Size = UDim2.new(1, -48, 0, 22),
-    }, card)
-    local sweep = new("Frame", {
-        Name = "Sweep", AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.new(-0.3, 0, 0, -60),
-        Size = UDim2.new(0, 64, 1, 120), Rotation = 24, BackgroundColor3 = light, BorderSizePixel = 0, BackgroundTransparency = 0.9,
-    }, card)
-    new("UIGradient", { Transparency = NumberSequence.new({
-        NumberSequenceKeypoint.new(0, 1), NumberSequenceKeypoint.new(0.5, 0.4), NumberSequenceKeypoint.new(1, 1),
-    }) }, sweep)
-    local line = new("Frame", {
-        Name = "Accent", AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.new(0.5, 0, 1, -17),
-        Size = UDim2.fromOffset(0, 2), BackgroundColor3 = accent, BorderSizePixel = 0,
-    }, card)
-    new("UICorner", { CornerRadius = UDim.new(1, 0) }, line)
-
+        Position = UDim2.new(0, 16, 0, 344), Size = UDim2.new(1, -32, 0, 24),
+    }, stage)
+    new("UITextSizeConstraint", { MinTextSize = 8, MaxTextSize = 15 }, subtitle)
+    local footer = new("Frame", {
+        Name = "Signature", AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.new(0.5, 0, 1, -8),
+        Size = UDim2.fromOffset(0, 2), Rotation = -4, BackgroundColor3 = light, BackgroundTransparency = 1, BorderSizePixel = 0,
+    }, stage)
+    gradient(footer)
+    local particles = {}
+    for index = 1, 12 do
+        local angle = index * math.pi * 2 / 12 + 0.22
+        local outward = Vector2.new(math.cos(angle), math.sin(angle))
+        local particle = new("Frame", {
+            Name = "Spark" .. index, AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.new(0.5, outward.X * 95, 0.5, outward.Y * 95),
+            Size = UDim2.fromOffset(index % 3 == 0 and 4 or 2, index % 3 == 0 and 4 or 2), Rotation = 45,
+            BackgroundColor3 = index % 2 == 0 and light or accent, BackgroundTransparency = 1, BorderSizePixel = 0,
+        }, effects)
+        particles[index] = particle
+        later(duration * (0.12 + index * 0.008), function()
+            tween(particle, duration * 0.12, { BackgroundTransparency = 0.15 })
+            tween(particle, duration * 0.4, { Position = UDim2.new(0.5, outward.X * 165, 0.5, outward.Y * 142), Rotation = 130 })
+        end)
+        later(duration * (0.34 + index * 0.008), function() tween(particle, duration * 0.2, { BackgroundTransparency = 1 }) end)
+    end
     local function reflow()
         local size = holder.AbsoluteSize
-        fit.Scale = math.min(1, math.max(1, size.X - 32) / 396, math.max(1, size.Y - 32) / 320)
+        local width = math.max(1, math.min(520, size.X - 40))
+        local compact = width < 440
+        local height = compact and 360 or 390
+        local logoSize = math.min(compact and 220 or 260, width * 0.85)
+        stage.Size = UDim2.fromOffset(width, height)
+        fit.Scale = math.min(1, math.max(1, size.Y - 40) / height)
+        local y = compact and 128 or 143
+        logo.Size = UDim2.fromOffset(logoSize, logoSize)
+        logo.Position = UDim2.new(0.5, 0, 0, y)
+        effects.Position = logo.Position
+        effectFit.Scale = math.min(1, width / 360)
+        titleClip.Position = UDim2.new(0, 16, 0, compact and 258 or 286)
+        subtitle.Position = UDim2.new(0, 16, 0, compact and 312 or 344)
     end
     table.insert(connections, holder:GetPropertyChangedSignal("AbsoluteSize"):Connect(reflow))
     reflow()
-    state.UIElements = { Gui = gui, Container = holder, Center = center, Card = card, Fit = fit, Title = title, Subtitle = subtitle, Logo = logo, Image = image, Monogram = fallback, Orbit = orbit }
-    tween(card, duration * 0.22, { GroupTransparency = 0, Position = UDim2.fromScale(0.5, 0.5) })
-    tween(pop, duration * 0.35, { Scale = 1 })
-    tween(logoScale, duration * 0.4, { Scale = 1 }, Enum.EasingStyle.Back)
-    tween(logo, duration * 0.4, { Rotation = 0 })
-    tween(orbit, duration, { Rotation = 160 }, Enum.EasingStyle.Linear)
-    tween(line, duration * 0.5, { Size = UDim2.fromOffset(48, 2) })
-    tween(glow, duration * 0.65, { ImageTransparency = 0.35, Size = UDim2.fromOffset(250, 250) })
-    later(duration * 0.18, function() tween(sweep, duration * 0.55, { Position = UDim2.new(1.3, 0, 0, -60) }) end)
-    later(duration * 0.78, function()
-        tween(card, duration * 0.22, { GroupTransparency = 1 })
-        tween(pop, duration * 0.22, { Scale = 1.035 })
+    state.UIElements = {
+        Gui = gui, Container = holder, Stage = stage, Card = stage, Backdrop = backdrop, Fit = fit,
+        Title = title, Subtitle = subtitle, Logo = logo, Image = image, Monogram = fallback,
+        Glow = glow, Slash = line, Diamond = diamond, Particles = particles,
+    }
+    tween(backdrop, duration * 0.18, { BackgroundTransparency = 0.3 })
+    tween(line, duration * 0.16, { Size = UDim2.fromOffset(310, 2) }, Enum.EasingStyle.Exponential)
+    tween(slashGlow, duration * 0.16, { Size = UDim2.fromOffset(310, 12) }, Enum.EasingStyle.Exponential)
+    later(duration * 0.15, function()
+        state.Phase = "reveal"
+        revealStarted = true
+        fallback.Visible = not logoReady
+        tween(logoScale, duration * 0.28, { Scale = 1 }, Enum.EasingStyle.Back)
+        tween(logo, duration * 0.28, { Rotation = 0 })
+        if image.Image ~= "" then
+            tween(image, duration * 0.16, { ImageTransparency = 0 })
+            table.insert(threads, task.spawn(function()
+                while state.Running and state.Phase ~= "exit" do
+                    showLogo()
+                    if logoReady then return end
+                    task.wait(0.04)
+                end
+            end))
+        end
+        if not logoReady then tween(fallback, duration * 0.16, { TextTransparency = 0 }) end
+        if logoReady then
+            tween(echo, duration * 0.1, { ImageTransparency = 0.6 })
+            later(duration * 0.13, function() tween(echo, duration * 0.18, { ImageTransparency = 1, Position = UDim2.fromOffset(0, 0) }) end)
+        end
+        tween(line, duration * 0.2, { Size = UDim2.fromOffset(410, 1), BackgroundTransparency = 1 })
+        tween(slashGlow, duration * 0.2, { BackgroundTransparency = 1 })
+        tween(diamond, duration * 0.45, { Rotation = 45, Size = UDim2.fromOffset(195, 195) })
+        tween(diamondStroke, duration * 0.2, { Transparency = 0.55 })
+        tween(diamondGradient, duration * 0.6, { Rotation = 150 })
+    end)
+    later(duration * 0.32, function()
+        tween(title, duration * 0.18, { TextTransparency = 0, Position = UDim2.fromOffset(0, 0) })
+    end)
+    later(duration * 0.44, function()
+        tween(subtitle, duration * 0.15, { TextTransparency = 0.05 })
+        tween(footer, duration * 0.15, { Size = UDim2.fromOffset(50, 2), BackgroundTransparency = 0.1 })
+    end)
+    later(duration * 0.62, function() state.Phase = "hold" end)
+    later(duration * 0.82, function()
+        state.Phase = "exit"
+        for _, animation in ipairs(tweens) do animation:Cancel() end
+        state.Revealed = true
+        window.IntroPlaying = false
+        window:Open()
+        tween(logoScale, duration * 0.18, { Scale = 1.12 }, Enum.EasingStyle.Quad, Enum.EasingDirection.In)
+        for _, object in ipairs(holder:GetDescendants()) do
+            if object:IsA("TextLabel") then tween(object, duration * 0.16, { TextTransparency = 1 })
+            elseif object:IsA("ImageLabel") then tween(object, duration * 0.16, { ImageTransparency = 1 })
+            elseif object:IsA("Frame") and object.BackgroundTransparency < 1 then tween(object, duration * 0.18, { BackgroundTransparency = 1 })
+            elseif object:IsA("UIStroke") then tween(object, duration * 0.14, { Transparency = 1 }) end
+        end
     end)
     later(duration, function() state:Finish() end)
     return state

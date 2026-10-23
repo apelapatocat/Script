@@ -31064,7 +31064,7 @@ function Element:New(Config)
         end
     end
 
-    Toggle:Set(Toggled, false)
+    Toggle:Set(Toggled)
 
     Creator.AddSignal(Toggle.ToggleFrame.UIElements.Main.MouseButton1Click, function()
         Toggle:Set(not Toggled)
@@ -31330,6 +31330,14 @@ function Element:New(Config)
         end
     end)
     
+    update(Value, false)
+    if CanCallback then
+        local initialValue = FormatValue(LastValue)
+        task.spawn(function()
+            Creator.SafeCallback(Slider.Callback, initialValue)
+        end)
+    end
+
     return Slider.__type, Slider
 end
 
@@ -33326,30 +33334,33 @@ function Element:New(Config)
     end
 
     
-    function Colorpicker:Update(Color,Transparency)
-        Colorpicker.UIElements.Colorpicker.ImageTransparency = Transparency or 0
+    function Colorpicker:Update(Color, Transparency, fireCallback)
+        Transparency = math.clamp(tonumber(Transparency) or Colorpicker.Transparency or 0, 0, 1)
+        Colorpicker.UIElements.Colorpicker.ImageTransparency = Transparency
         Colorpicker.UIElements.Colorpicker.ImageColor3 = Color
         Colorpicker.Default = Color
-        if Transparency then
-            Colorpicker.Transparency = Transparency
+        Colorpicker.Transparency = Transparency
+        if CanCallback and fireCallback ~= false then
+            task.spawn(function()
+                Creator.SafeCallback(Colorpicker.Callback, Color, Transparency)
+            end)
         end
     end
-    
-    function Colorpicker:Set(c,t)
-        return Colorpicker:Update(c,t)
+
+    function Colorpicker:Set(c, t, fireCallback)
+        return Colorpicker:Update(c, t, fireCallback)
     end
-    
+
     Creator.AddSignal(Colorpicker.UIElements.Colorpicker.MouseButton1Click, function()
         if CanCallback then
             Element:Colorpicker(Colorpicker, Config.Window, function(color, transparency)
                 Colorpicker:Update(color, transparency)
-                Colorpicker.Default = color
-                Colorpicker.Transparency = transparency
-                Creator.SafeCallback(Colorpicker.Callback, color, transparency)
             end).ColorpickerFrame:Open()
         end
     end)
     
+    Colorpicker:Update(Colorpicker.Default, Colorpicker.Transparency)
+
     return Colorpicker.__type, Colorpicker
 end
 

@@ -1,0 +1,22 @@
+{
+    "Legend": {
+        "Added": "[+]",
+        "Removed": "[-]",
+        "Improved": "[/]"
+    },
+    "Colors": {
+        "Added": "#55DD88",
+        "Removed": "#FF5555",
+        "Improved": "#FFD166"
+    },
+    "Updates": [
+        {
+            "Version": "1.0.0",
+            "Title": "The Beginning",
+            "TitleColor": "#DB9CFF",
+            "Changes": [
+                "[+] Added Nothing Yet",
+            ]
+        }
+    ]
+}

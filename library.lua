@@ -38678,11 +38678,24 @@ function WindUI:CreateWindow(Config)
     if Config.Tags ~= false and tags.Enabled ~= false then
         local themeAccent = Creator.Theme and Creator.Theme.Accent
         local baseTag = Config.TagColor or (typeof(themeAccent) == "Color3" and themeAccent) or Color3.fromHex("#A855F7")
-        if Config.Version and tags.Version ~= false then
-            Window.VersionTag = Window:Tag({ Title = "v" .. tostring(Config.Version), Color = tags.VersionColor or baseTag })
+        local function resolveTag(value, extraColor, defaultTitle)
+            if value == false then return nil end
+            local color, title = extraColor or baseTag, defaultTitle
+            if type(value) == "table" then
+                if value.Enabled == false then return nil end
+                color = value.Color or value.Colour or extraColor or baseTag
+                title = value.Title or defaultTitle
+            end
+            if typeof(color) == "string" then color = Color3.fromHex(color) end
+            return color, title
         end
-        if Config.Rank and tags.Rank ~= false then
-            Window.RankTag = Window:Tag({ Title = tostring(Config.Rank), Color = tags.RankColor or Config.RankColor or baseTag })
+        local versionColor, versionTitle = resolveTag(tags.Version, tags.VersionColor, "v" .. tostring(Config.Version))
+        if Config.Version and versionColor then
+            Window.VersionTag = Window:Tag({ Title = versionTitle, Color = versionColor })
+        end
+        local rankColor, rankTitle = resolveTag(tags.Rank, tags.RankColor or Config.RankColor, tostring(Config.Rank))
+        if Config.Rank and rankColor then
+            Window.RankTag = Window:Tag({ Title = rankTitle, Color = rankColor })
         end
     end
     

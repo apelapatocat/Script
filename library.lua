@@ -27756,6 +27756,28 @@ end
 return PopupModule end function __DARKLUA_BUNDLE_MODULES.H()
 return {
     {
+        Name = "h4xscripts",
+        Accent = "#ff3333",
+        Dialog = "#c1121f",
+        Outline = "#ff8080",
+        Text = "#f5f5f7",
+        Placeholder = "#8a8a98",
+        Background = "#07050a",
+        Button = "#ff5e5e",
+        Icon = "#ff9999",
+        HeaderBackground = "#07050a",
+        HeaderOutline = "#ff8080",
+        HeaderAccent = "#ff5e5e",
+        HeaderTag = "#ff9999",
+        HeaderDesc = "#8a8a98",
+        HeaderButton = "#ff5e5e",
+        HeaderButtonText = "#FFFFFF",
+        ShortcutBackground = "#ff3333",
+        ShortcutHover = "#ff5e5e",
+        ShortcutTitle = "#f5f5f7",
+        ShortcutDesc = "#ff9999",
+    },
+    {
         Name = "Ocean Blue",
         Accent = "#0B5394",
         Dialog = "#0A3D6B",

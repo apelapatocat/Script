@@ -1,22 +1,40 @@
 {
-    "Legend": {
-        "Added": "[+]",
-        "Removed": "[-]",
-        "Improved": "[/]"
+  "Legend": {
+    "Added": "[+]",
+    "Removed": "[-]",
+    "Improved": "[/]"
+  },
+  "Colors": {
+    "Added": "#55DD88",
+    "Removed": "#FF5555",
+    "Improved": "#FFD166"
+  },
+  "Updates": [
+    {
+      "Version": "1.0.5",
+      "Title": "Halloween Automation & Performance",
+      "TitleColor": "#FF9A45",
+      "Changes": [
+        "[+] Auto Roll Gacha: Spooky Gacha .",
+        "[+] Auto Trick or Treat: door interactions, event choices, memory minigames, portal encounters, and event combat.",
+        "[+] Auto Handle Event and automatic collection of dropped Halloween candy, including proximity-prompt pickups.",
+        "[+] Auto Break Pumpkin, Auto Kill Jack o' Lantern, and Auto Kill Dapper Jack.",
+        "[+] Auto Summon Dapper Jack with material and ritual-availability checks.",
+
+        "[/] Fixed one major source of lag.",
+        "[/] Improved Halloween enemy detection, positioning above enemies, and attacks against valid target groups.",
+        "[/] Fixed Auto Break Pumpkin competing with Trick or Treat; pumpkin farming pauses during active events.",
+        "[/] Fixed Dapper Jack summoning moving to the NPC without enough materials.",
+        "[/] Improved Halloween candy pickup handling and event coordination."
+      ]
     },
-    "Colors": {
-        "Added": "#55DD88",
-        "Removed": "#FF5555",
-        "Improved": "#FFD166"
-    },
-    "Updates": [
-        {
-            "Version": "1.0.0",
-            "Title": "The Beginning",
-            "TitleColor": "#DB9CFF",
-            "Changes": [
-                "[+] Added Nothing Yet"
-            ]
-        }
-    ]
+    {
+      "Version": "1.0.0",
+      "Title": "The Beginning",
+      "TitleColor": "#DB9CFF",
+      "Changes": [
+        "[+] Added Nothing Yet"
+      ]
+    }
+  ]
 }

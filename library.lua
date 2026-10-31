@@ -30614,9 +30614,25 @@ return function(Config)
     end
     
     
-    function Element:Lock()
+    function Element:Lock(message)
         CanHover = false
         updateHover()
+        local text = type(message) == "string" and message ~= "" and message or nil
+        if text then
+            LockedIcon.Visible = false
+            LockedTitle.Text = text
+            LockedTitle.TextSize = 14
+            LockedTitle.TextWrapped = true
+            LockedTitle.AutomaticSize = Enum.AutomaticSize.Y
+            LockedTitle.Size = UDim2.new(0.86, 0, 0, 0)
+        else
+            LockedIcon.Visible = true
+            LockedTitle.Text = "Locked"
+            LockedTitle.TextSize = 18
+            LockedTitle.TextWrapped = false
+            LockedTitle.AutomaticSize = Enum.AutomaticSize.XY
+            LockedTitle.Size = UDim2.new(0, 0, 0, 0)
+        end
         Locked.Active = true
         Locked.Visible = true
     end
@@ -30826,10 +30842,11 @@ function Element:New(Config)
     
     Button.ButtonFrame:Colorize(Button.UIElements.ButtonIcon.ImageLabel, "ImageColor3")
     
-    function Button:Lock()
+    function Button:Lock(message)
+        local lockText = type(message) == "string" and message or (type(Button.Locked) == "string" and Button.Locked or nil)
         Button.Locked = true
         CanCallback = false
-        return Button.ButtonFrame:Lock()
+        return Button.ButtonFrame:Lock(lockText)
     end
     function Button:Unlock()
         Button.Locked = false
@@ -31119,10 +31136,11 @@ function Element:New(Config)
     
     
 
-    function Toggle:Lock()
+    function Toggle:Lock(message)
+        local lockText = type(message) == "string" and message or (type(Toggle.Locked) == "string" and Toggle.Locked or nil)
         Toggle.Locked = true
         CanCallback = false
-        return Toggle.ToggleFrame:Lock()
+        return Toggle.ToggleFrame:Lock(lockText)
     end
     function Toggle:Unlock()
         Toggle.Locked = false
@@ -31293,10 +31311,11 @@ function Element:New(Config)
         })
     })
 
-    function Slider:Lock()
+    function Slider:Lock(message)
+        local lockText = type(message) == "string" and message or (type(Slider.Locked) == "string" and Slider.Locked or nil)
         Slider.Locked = true
         CanCallback = false
-        return Slider.SliderFrame:Lock()
+        return Slider.SliderFrame:Lock(lockText)
     end
     function Slider:Unlock()
         Slider.Locked = false
@@ -31489,11 +31508,12 @@ function Element:New(Config)
         if changed and fireChanged ~= false then Creator.SafeCallback(Keybind.OnChanged, value) end
         return true
     end
-    function Keybind:Lock()
+    function Keybind:Lock(message)
+        local lockText = type(message) == "string" and message or (type(Keybind.Locked) == "string" and Keybind.Locked or nil)
         cancelPick()
         Keybind.Locked = true
         CanCallback = false
-        return Keybind.KeybindFrame:Lock()
+        return Keybind.KeybindFrame:Lock(lockText)
     end
     function Keybind:Unlock()
         Keybind.Locked = false
@@ -31616,10 +31636,11 @@ function Element:New(Config)
         Scale = 1,
     })
     
-    function Input:Lock()
+    function Input:Lock(message)
+        local lockText = type(message) == "string" and message or (type(Input.Locked) == "string" and Input.Locked or nil)
         Input.Locked = true
         CanCallback = false
-        return Input.InputFrame:Lock()
+        return Input.InputFrame:Lock(lockText)
     end
     function Input:Unlock()
         Input.Locked = false
@@ -32301,10 +32322,11 @@ function Element:New(Config)
     Dropdown.Open = Dropdown.DropdownMenu.Open
     Dropdown.Close = Dropdown.DropdownMenu.Close
     
-    function Dropdown:Lock()
+    function Dropdown:Lock(message)
+        local lockText = type(message) == "string" and message or (type(Dropdown.Locked) == "string" and Dropdown.Locked or nil)
         Dropdown.Locked = true
         CanCallback = false
-        return Dropdown.DropdownFrame:Lock()
+        return Dropdown.DropdownFrame:Lock(lockText)
     end
     function Dropdown:Unlock()
         Dropdown.Locked = false
@@ -33437,10 +33459,11 @@ function Element:New(Config)
     }, nil, true)
     
     
-    function Colorpicker:Lock()
+    function Colorpicker:Lock(message)
+        local lockText = type(message) == "string" and message or (type(Colorpicker.Locked) == "string" and Colorpicker.Locked or nil)
         Colorpicker.Locked = true
         CanCallback = false
-        return Colorpicker.ColorpickerFrame:Lock()
+        return Colorpicker.ColorpickerFrame:Lock(lockText)
     end
     function Colorpicker:Unlock()
         Colorpicker.Locked = false

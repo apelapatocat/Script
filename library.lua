@@ -1,4 +1,4 @@
-local VibeUILicense = [==[VibeUI 1.0.0, derived from WindUI 1.6.56 by Footagesus.
+local H4xUILicense = [==[H4xUI 1.0.0, derived from WindUI 1.6.56 by Footagesus.
 
 MIT License
 
@@ -24480,13 +24480,13 @@ return IconModule
 end function __DARKLUA_BUNDLE_MODULES.i()
 local HttpService = game:GetService("HttpService")
 
-local Storage = { Root = "VibeUI" }
+local Storage = { Root = "H4xUI" }
 
 function Storage.Ensure(path)
-    assert(type(isfolder) == "function" and type(makefolder) == "function", "VibeUI needs filesystem support")
+    assert(type(isfolder) == "function" and type(makefolder) == "function", "H4xUI needs filesystem support")
     local current = ""
     for part in path:gmatch("[^/\\]+") do
-        assert(part ~= "." and part ~= "..", "Invalid VibeUI folder")
+        assert(part ~= "." and part ~= "..", "Invalid H4xUI folder")
         current = current == "" and part or current .. "/" .. part
         if not isfolder(current) then
             makefolder(current)
@@ -24502,7 +24502,7 @@ function Storage.Window(folder, subfolder)
     for _, segment in ipairs({ folder, subfolder }) do
         assert(not segment:match("^[/\\]") and not segment:find(":", 1, true), "Use a relative storage folder")
         for part in segment:gmatch("[^/\\]+") do
-            assert(part ~= "." and part ~= "..", "Invalid VibeUI folder")
+            assert(part ~= "." and part ~= "..", "Invalid H4xUI folder")
             table.insert(parts, part)
         end
     end
@@ -24530,7 +24530,7 @@ function Storage.WriteJSON(path, value)
     local ok, err = pcall(function()
         writefile(path, HttpService:JSONEncode(value))
     end)
-    if not ok then warn("[VibeUI] Could not save settings: " .. tostring(err)) end
+    if not ok then warn("[H4xUI] Could not save settings: " .. tostring(err)) end
     return ok
 end
 
@@ -24571,7 +24571,7 @@ function Assets.Resolve(source, storagePath)
     if type(customAsset) ~= "function" or type(writefile) ~= "function" then return nil end
     local hash = 5381
     for index = 1, #source do hash = (hash * 33 + source:byte(index)) % 4294967296 end
-    local base = Storage.Window(storagePath or "VibeUI") .. "/assets/" .. string.format("%08x", hash)
+    local base = Storage.Window(storagePath or "H4xUI") .. "/assets/" .. string.format("%08x", hash)
     for _, suffix in ipairs({ "png", "jpg", "webp" }) do
         local path = base .. "." .. suffix
         local contents = Storage.Read(path)
@@ -24643,9 +24643,9 @@ Icons.SetIconsType("lucide")
 local WindUI
 
 local Creator = {
-    StorageRoot = "VibeUI",
+    StorageRoot = "H4xUI",
     MobileMode = (UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled)
-        or (((getgenv and getgenv()) or _G).VibeScriptsMobilePreview == true),
+        or (((getgenv and getgenv()) or _G).H4xUIMobilePreview == true),
     Font = "rbxassetid://12187365364",
     Localization = nil,
     CanDraggable = true,
@@ -25307,7 +25307,7 @@ function Creator.Image(Img, Name, Corner, Folder, Type, IsThemeTag, Themed, Them
             ImageFrame.ImageLabel.Image = asset
         else
             ImageFrame.Visible = false
-            warn("[VibeUI] Could not resolve image: " .. Img)
+            warn("[H4xUI] Could not resolve image: " .. Img)
         end
     elseif Img == "" then
         ImageFrame.Visible = false
@@ -26034,7 +26034,7 @@ end
 
 function Preferences.Load(config, library, path)
     local state = {
-        Theme = library.Themes[config.Theme] and config.Theme or "Vibe Midnight",
+        Theme = library.Themes[config.Theme] and config.Theme or "H4x Midnight",
         Scale = 100,
         Sections = {},
         Transparent = config.Transparent,
@@ -26047,9 +26047,6 @@ function Preferences.Load(config, library, path)
     if config.SaveSettings then
         saved = Storage.ReadJSON(path .. "/ui_settings.json")
             or Storage.ReadJSON(path .. "/settings.json")
-        if not saved and path == "VibeScripts/Core" then
-            saved = Storage.ReadJSON("VibeScripts/settings.json")
-        end
     end
     if saved then
         if type(saved.Sections) == "table" then
@@ -26142,16 +26139,12 @@ end
 return Preferences
 end function __DARKLUA_BUNDLE_MODULES.u()
 local environment = (getgenv and getgenv()) or _G
-environment.__VibeUIWindows = environment.__VibeUIWindows or {}
-local windows = environment.__VibeUIWindows
+environment.__H4xUIWindows = environment.__H4xUIWindows or {}
+local windows = environment.__H4xUIWindows
 local Runtime = {}
 
 function Runtime.Prepare(path)
     local previous = windows[path]
-    if not previous and path == "VibeScripts/Core" and environment.VibeScriptsUI then
-        previous = environment.VibeScriptsUI.Window
-        environment.VibeScriptsUI = nil
-    end
     if previous then
         if not previous.Destroyed then previous:Destroy() end
         task.wait(0.45)
@@ -26173,17 +26166,17 @@ return function(options)
     config.Icon = config.Icon or config.Logo
     config.Author = config.SubTitle or config.Subtitle or config.Author
     local defaults = {
-        Title = "VibeUI",
+        Title = "H4xUI",
         Author = "",
         Icon = "sparkles",
         IconSize = 38,
         IconThemed = false,
-        Folder = "VibeUI",
+        Folder = "H4xUI",
         Size = UDim2.fromOffset(700, 600),
         MinSize = Vector2.new(560, 440),
         MaxSize = Vector2.new(920, 760),
         SideBarWidth = 170,
-        Theme = "Vibe Midnight",
+        Theme = "H4x Midnight",
         Transparent = false,
         ToggleKey = Enum.KeyCode.RightShift,
         Resizable = true,
@@ -26217,12 +26210,12 @@ end function __DARKLUA_BUNDLE_MODULES.w()
 
 return [==[
 {
-  "name": "vibescripts-ui",
+  "name": "h4xui",
   "version": "1.0.0",
-  "main": "./dist/vibeui.lua",
+  "main": "./dist/h4xui.lua",
   "repository": "https://github.com/Footagesus/WindUI",
-  "author": "VibeScripts contributors; original WindUI by Footagesus",
-  "description": "VibeScripts UI library, forked from WindUI 1.6.56",
+  "author": "H4xUI contributors; original WindUI by Footagesus",
+  "description": "H4xUI library, forked from WindUI 1.6.56",
   "license": "MIT",
   "scripts": {
     "dev": "bash build/build.sh dev $INPUT_FILE",
@@ -27547,7 +27540,7 @@ end
 function Audio.new(parent)
     local controller = { Enabled = true, SoundId = Audio.DefaultSoundId, Volume = 0.35 }
     local sound = Instance.new("Sound")
-    sound.Name = "VibeUI/NotificationSound"
+    sound.Name = "H4xUI/NotificationSound"
     sound.SoundId = controller.SoundId
     sound.Volume = controller.Volume
     sound.Looped = false
@@ -27867,28 +27860,6 @@ return {
         ShortcutHover = "#9333EA",
         ShortcutTitle = "#FDF4FF",
         ShortcutDesc = "#BC8FDD",
-    },
-    {
-        Name = "h4xscripts",
-        Accent = "#B3121B",
-        Dialog = "#1A0709",
-        Outline = "#7A1A22",
-        Text = "#F5EDEE",
-        Placeholder = "#9A7276",
-        Background = "#0B0507",
-        Button = "#C1121F",
-        Icon = "#FF5E5E",
-        HeaderBackground = "#0B0507",
-        HeaderOutline = "#7A1A22",
-        HeaderAccent = "#C1121F",
-        HeaderTag = "#FF8080",
-        HeaderDesc = "#9A7276",
-        HeaderButton = "#C1121F",
-        HeaderButtonText = "#FFFFFF",
-        ShortcutBackground = "#1A0709",
-        ShortcutHover = "#26090D",
-        ShortcutTitle = "#F5EDEE",
-        ShortcutDesc = "#9A7276",
     },
     {
         Name = "Sunset",
@@ -28242,6 +28213,28 @@ return {
         ShortcutTitle = "#FDFDFD",
         ShortcutDesc = "#771111",
     },
+    {
+        Name = "h4xscripts",
+        Accent = "#C1121F",
+        Dialog = "#4A1015",
+        Outline = "#F0A0A0",
+        Text = "#FDF0F1",
+        Placeholder = "#C08A8F",
+        Background = "#2E0A0D",
+        Button = "#C1121F",
+        Icon = "#FF9A9A",
+        HeaderBackground = "#4E1218",
+        HeaderOutline = "#F0A0A0",
+        HeaderAccent = "#C1121F",
+        HeaderTag = "#FFB0B0",
+        HeaderDesc = "#C08A8F",
+        HeaderButton = "#C1121F",
+        HeaderButtonText = "#FFFFFF",
+        ShortcutBackground = "#4A1015",
+        ShortcutHover = "#5A161C",
+        ShortcutTitle = "#FDF0F1",
+        ShortcutDesc = "#C08A8F",
+    },
 }
 end function __DARKLUA_BUNDLE_MODULES.I()
 
@@ -28281,16 +28274,16 @@ local function makeTheme(name, background, accent)
 end
 
 return {
-    Midnight = makeTheme("Vibe Midnight", "#0D0914", "#181120"),
-    Violet = makeTheme("Vibe Violet", "#160C23", "#29153D"),
+    Midnight = makeTheme("H4x Midnight", "#0D0914", "#181120"),
+    Violet = makeTheme("H4x Violet", "#160C23", "#29153D"),
 }
 end function __DARKLUA_BUNDLE_MODULES.J()
 local Presets = __DARKLUA_BUNDLE_MODULES.load('H')
-local VibeThemes = __DARKLUA_BUNDLE_MODULES.load('I')
+local H4xThemes = __DARKLUA_BUNDLE_MODULES.load('I')
 return function(WindUI)
     local themes = {
-        ["Vibe Midnight"] = VibeThemes.Midnight,
-        ["Vibe Violet"] = VibeThemes.Violet,
+        ["H4x Midnight"] = H4xThemes.Midnight,
+        ["H4x Violet"] = H4xThemes.Violet,
         Dark = {
             Name = "Dark",
             
@@ -28954,9 +28947,9 @@ function Intro.Start(window, config)
     local duration = tonumber(options.Duration) or 2.1
     if duration ~= duration then duration = 2.1 end
     duration = math.clamp(duration, 0.6, 3)
-    local accent = Text.Color(options.Color) or Color3.fromHex("#A855F7")
+    local accent = Text.Color(options.Color) or Color3.fromHex("#C1121F")
     local light = accent:Lerp(Color3.new(1, 1, 1), 0.7)
-    local white = Color3.fromHex("#FAF5FF")
+    local white = Color3.fromHex("#F5EDEE")
     local state = { Running = true, Completed = false, Cancelled = false, Revealed = false, Phase = "ignite", Duration = duration, UIElements = {} }
     local connections, tweens, threads = {}, {}, {}
     local gui
@@ -29017,7 +29010,7 @@ function Intro.Start(window, config)
     end
 
     gui = new("ScreenGui", {
-        Name = "VibeUI/Intro", IgnoreGuiInset = true, ScreenInsets = Enum.ScreenInsets.None,
+        Name = "H4xUI/Intro", IgnoreGuiInset = true, ScreenInsets = Enum.ScreenInsets.None,
         ResetOnSpawn = false, DisplayOrder = config.WindUI.ScreenGui.DisplayOrder + 20,
         ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
     }, config.WindUI.ScreenGui.Parent)
@@ -29029,7 +29022,7 @@ function Intro.Start(window, config)
         Name = "Container", Size = UDim2.fromScale(1, 1), BackgroundTransparency = 1, Active = false,
     }, gui)
     local backdrop = new("Frame", {
-        Name = "Backdrop", Size = UDim2.fromScale(1, 1), BackgroundColor3 = Color3.fromHex("#0B0616"),
+        Name = "Backdrop", Size = UDim2.fromScale(1, 1), BackgroundColor3 = Color3.fromHex("#0B0507"),
         BackgroundTransparency = 1, BorderSizePixel = 0, Active = false,
     }, holder)
     local stage = new("Frame", {
@@ -29077,7 +29070,7 @@ function Intro.Start(window, config)
     }, stage)
     local logoScale = new("UIScale", { Scale = 0.68 }, logo)
     local fallback = new("TextLabel", {
-        Name = "Monogram", Text = "VS", TextSize = 100, TextColor3 = white, TextTransparency = 1,
+        Name = "Monogram", Text = "H4X", TextSize = 100, TextColor3 = white, TextTransparency = 1,
         FontFace = Font.new(Creator.Font, Enum.FontWeight.Heavy), Size = UDim2.fromScale(1, 1), BackgroundTransparency = 1,
     }, logo)
     local echo = new("ImageLabel", {
@@ -29122,7 +29115,7 @@ function Intro.Start(window, config)
     new("UITextSizeConstraint", { MinTextSize = 18, MaxTextSize = 36 }, title)
     local subtitle = new("TextLabel", {
         Name = "Subtitle", Text = tostring(options.Subtitle or (window.Author ~= "" and window.Author) or "Your scripts. Your vibe."),
-        TextColor3 = Color3.fromHex("#D9C9ED"), TextSize = 15, TextScaled = true, TextTransparency = 1, TextTruncate = Enum.TextTruncate.AtEnd,
+        TextColor3 = Color3.fromHex("#9A7276"), TextSize = 15, TextScaled = true, TextTransparency = 1, TextTruncate = Enum.TextTruncate.AtEnd,
         FontFace = Font.new(Creator.Font), BackgroundTransparency = 1,
         Position = UDim2.new(0, 16, 0, 344), Size = UDim2.new(1, -32, 0, 24),
     }, stage)
@@ -29133,8 +29126,8 @@ function Intro.Start(window, config)
     }, stage)
     gradient(footer)
     local particles = {}
-    for index = 1, 12 do
-        local angle = index * math.pi * 2 / 12 + 0.22
+    for index = 1, 18 do
+        local angle = index * math.pi * 2 / 18 + 0.22
         local outward = Vector2.new(math.cos(angle), math.sin(angle))
         local particle = new("Frame", {
             Name = "Spark" .. index, AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.new(0.5, outward.X * 95, 0.5, outward.Y * 95),
@@ -29148,6 +29141,45 @@ function Intro.Start(window, config)
         end)
         later(duration * (0.34 + index * 0.008), function() tween(particle, duration * 0.2, { BackgroundTransparency = 1 }) end)
     end
+    local ring = new("Frame", {
+        Name = "OrbitRing", AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.5),
+        Size = UDim2.fromOffset(238, 238), BackgroundTransparency = 1, Rotation = 0, ZIndex = 1,
+    }, effects)
+    new("UICorner", { CornerRadius = UDim.new(1, 0) }, ring)
+    local ringStroke = new("UIStroke", { Color = accent, Thickness = 1, Transparency = 1 }, ring)
+    new("UIGradient", { Color = ColorSequence.new(light, accent), Rotation = 90 }, ringStroke)
+    local dotOrbit = new("Frame", {
+        Name = "DotOrbit", AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.5),
+        Size = UDim2.fromOffset(238, 238), BackgroundTransparency = 1, ZIndex = 1,
+    }, effects)
+    for index = 1, 3 do
+        local angle = index * math.pi * 2 / 3
+        local dot = new("Frame", {
+            Name = "OrbitDot" .. index, AnchorPoint = Vector2.new(0.5, 0.5),
+            Position = UDim2.new(0.5, math.cos(angle) * 119, 0.5, math.sin(angle) * 119),
+            Size = UDim2.fromOffset(5, 5), BackgroundColor3 = light, BackgroundTransparency = 1, BorderSizePixel = 0,
+        }, dotOrbit)
+        new("UICorner", { CornerRadius = UDim.new(1, 0) }, dot)
+        later(duration * 0.3, function() tween(dot, duration * 0.2, { BackgroundTransparency = 0.2 }) end)
+    end
+    local scan = new("Frame", {
+        Name = "Scan", AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.new(0.5, 0, 0, -30),
+        Size = UDim2.new(1, 0, 0, 2), BackgroundColor3 = light, BackgroundTransparency = 1, BorderSizePixel = 0, ZIndex = 5,
+    }, stage)
+    gradient(scan, ColorSequence.new(accent, light))
+    local vignette = new("Frame", {
+        Name = "Vignette", Size = UDim2.fromScale(1, 1), BackgroundColor3 = Color3.new(0, 0, 0),
+        BackgroundTransparency = 0, BorderSizePixel = 0, ZIndex = 6,
+    }, holder)
+    new("UIGradient", {
+        Rotation = 90,
+        Transparency = NumberSequence.new({
+            NumberSequenceKeypoint.new(0, 0.5),
+            NumberSequenceKeypoint.new(0.45, 1),
+            NumberSequenceKeypoint.new(1, 0.5),
+        }),
+        Color = ColorSequence.new(Color3.new(0, 0, 0)),
+    }, vignette)
     local function reflow()
         local size = holder.AbsoluteSize
         local width = math.max(1, math.min(520, size.X - 40))
@@ -29170,8 +29202,25 @@ function Intro.Start(window, config)
         Gui = gui, Container = holder, Stage = stage, Card = stage, Backdrop = backdrop, Fit = fit,
         Title = title, Subtitle = subtitle, Logo = logo, Image = image, Monogram = fallback,
         Glow = glow, Slash = line, Diamond = diamond, Particles = particles,
+        Ring = ring, Orbit = dotOrbit, Scan = scan, Vignette = vignette,
     }
     tween(backdrop, duration * 0.18, { BackgroundTransparency = 0.3 })
+    tween(ringStroke, duration * 0.3, { Transparency = 0.55 })
+    tween(dotOrbit, duration * 1.4, { Rotation = 200 }, Enum.EasingStyle.Linear)
+    later(duration * 0.22, function()
+        tween(scan, duration * 0.05, { BackgroundTransparency = 0.15 })
+        tween(scan, duration * 0.55, { Position = UDim2.new(0.5, 0, 1, 30), BackgroundTransparency = 1 }, Enum.EasingStyle.Quad)
+    end)
+    later(duration * 0.3, function()
+        local wave = new("Frame", {
+            Name = "Shockwave", AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.5),
+            Size = UDim2.fromOffset(120, 120), BackgroundTransparency = 1,
+        }, effects)
+        new("UICorner", { CornerRadius = UDim.new(1, 0) }, wave)
+        local waveStroke = new("UIStroke", { Color = light, Thickness = 2, Transparency = 0.25 }, wave)
+        tween(wave, duration * 0.5, { Size = UDim2.fromOffset(440, 440) })
+        tween(waveStroke, duration * 0.5, { Transparency = 1 })
+    end)
     tween(line, duration * 0.16, { Size = UDim2.fromOffset(310, 2) }, Enum.EasingStyle.Exponential)
     tween(slashGlow, duration * 0.16, { Size = UDim2.fromOffset(310, 12) }, Enum.EasingStyle.Exponential)
     later(duration * 0.15, function()
@@ -29325,7 +29374,7 @@ ConfigManager = {
 
 function ConfigManager:Init(WindowTable)
     if not WindowTable.Folder then
-        warn("[ VibeUI.ConfigManager ] Window.Folder is not specified.")
+        warn("[ H4xUI.ConfigManager ] Window.Folder is not specified.")
         return false
     end
     
@@ -37879,7 +37928,7 @@ New("Frame", {
         if not ok then
             if Window.Intro then Window.Intro:Cancel() end
             Window.IntroPlaying = false
-            warn("[VibeUI] Intro skipped: " .. tostring(err))
+            warn("[H4xUI] Intro skipped: " .. tostring(err))
             Window:Open()
         end
     else
@@ -37994,11 +38043,11 @@ return function(window, options)
         table.sort(builtIn)
         if config.BuiltInThemes == false then return ordered end
         local names = {}
-        for _, name in ipairs({ "Vibe Midnight", "Vibe Violet" }) do
+        for _, name in ipairs({ "H4x Midnight", "H4x Violet" }) do
             if library:GetThemes()[name] then table.insert(names, name) end
         end
         for _, name in ipairs(builtIn) do
-            if name ~= "Vibe Midnight" and name ~= "Vibe Violet" then table.insert(names, name) end
+            if name ~= "H4x Midnight" and name ~= "H4x Violet" then table.insert(names, name) end
         end
         for _, name in ipairs(ordered) do table.insert(names, name) end
         return names
@@ -38206,9 +38255,9 @@ return function(window, tab, options)
 end
 end end
 local WindUI = {
-    Name = "VibeUI",
+    Name = "H4xUI",
     UpstreamVersion = "1.6.56",
-    StorageRoot = "VibeUI",
+    StorageRoot = "H4xUI",
     SourceKind = "local-fork",
     Window = nil,
     Theme = nil,
@@ -38265,7 +38314,7 @@ local GUIParent = gethui and gethui() or (game.CoreGui or game.Players.LocalPlay
 
 
 WindUI.ScreenGui = New("ScreenGui", {
-    Name = "VibeUI",
+    Name = "H4xUI",
     Parent = GUIParent,
     IgnoreGuiInset = true,
     ScreenInsets = "None",
@@ -38294,12 +38343,12 @@ WindUI.ScreenGui = New("ScreenGui", {
 })
 
 WindUI.NotificationGui = New("ScreenGui", {
-    Name = "VibeUI/Notifications",
+    Name = "H4xUI/Notifications",
     Parent = GUIParent,
     IgnoreGuiInset = true,
 })
 WindUI.DropdownGui = New("ScreenGui", {
-    Name = "VibeUI/Dropdowns",
+    Name = "H4xUI/Dropdowns",
     Parent = GUIParent,
     IgnoreGuiInset = true,
 })
@@ -38472,7 +38521,7 @@ WindUI.Themes = __DARKLUA_BUNDLE_MODULES.load('J')(WindUI)
 Creator.Themes = WindUI.Themes
 
 
-WindUI:SetTheme("Vibe Midnight")
+WindUI:SetTheme("H4x Midnight")
 WindUI:SetLanguage(Creator.Language)
 
 
@@ -38499,7 +38548,7 @@ function WindUI:CreateWindow(Config)
     
     local CanLoadWindow = true
     
-    local Theme = WindUI.Themes[Config.Theme or "Vibe Midnight"]
+    local Theme = WindUI.Themes[Config.Theme or "H4x Midnight"]
     
     
     WindUI:SetTheme(Config.Theme)
@@ -38604,11 +38653,13 @@ function WindUI:CreateWindow(Config)
     end
     local tags = type(Config.Tags) == "table" and Config.Tags or {}
     if Config.Tags ~= false and tags.Enabled ~= false then
+        local themeAccent = Creator.Theme and Creator.Theme.Accent
+        local baseTag = Config.TagColor or (typeof(themeAccent) == "Color3" and themeAccent) or Color3.fromHex("#A855F7")
         if Config.Version and tags.Version ~= false then
-            Window.VersionTag = Window:Tag({ Title = "v" .. tostring(Config.Version), Color = Color3.fromHex("#A855F7") })
+            Window.VersionTag = Window:Tag({ Title = "v" .. tostring(Config.Version), Color = tags.VersionColor or baseTag })
         end
         if Config.Rank and tags.Rank ~= false then
-            Window.RankTag = Window:Tag({ Title = tostring(Config.Rank), Color = Color3.fromHex("#7C3AED") })
+            Window.RankTag = Window:Tag({ Title = tostring(Config.Rank), Color = tags.RankColor or Config.RankColor or baseTag })
         end
     end
     

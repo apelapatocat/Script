@@ -24808,15 +24808,40 @@ function Creator.SetTheme(Theme)
     Creator.UpdateTheme(nil, true)
 end
 
+local FontObjectSet=setmetatable({},{__mode="k"})
+Creator.FontLifecycleVersion=46
+local function ApplyObjectFont(object,fontId)
+    if typeof(object)~="Instance" then return false end
+    return pcall(function()
+        local face=object.FontFace
+        if not face then error("FontFace unavailable",0) end
+        object.FontFace=Font.new(fontId,face.Weight,face.Style)
+    end)
+end
+
 function Creator.AddFontObject(Object)
-    table.insert(Creator.FontObjects, Object)
-    Creator.UpdateFont(Creator.Font)
+    
+    if not ApplyObjectFont(Object,Creator.Font) then return end
+    if not FontObjectSet[Object] then
+        FontObjectSet[Object]=true
+        table.insert(Creator.FontObjects,Object)
+        Object.Destroying:Once(function()
+            FontObjectSet[Object]=nil
+            for index=#Creator.FontObjects,1,-1 do
+                if Creator.FontObjects[index]==Object then table.remove(Creator.FontObjects,index) end
+            end
+        end)
+    end
 end
 
 function Creator.UpdateFont(FontId)
-    Creator.Font = FontId
-    for _,Obj in next, Creator.FontObjects do
-        Obj.FontFace = Font.new(FontId, Obj.FontFace.Weight, Obj.FontFace.Style)
+    Creator.Font=FontId
+    for index=#Creator.FontObjects,1,-1 do
+        local object=Creator.FontObjects[index]
+        if typeof(object)~="Instance" or not object.Parent or not ApplyObjectFont(object,FontId) then
+            table.remove(Creator.FontObjects,index)
+            if object then FontObjectSet[object]=nil end
+        end
     end
 end
 
@@ -27756,28 +27781,6 @@ end
 return PopupModule end function __DARKLUA_BUNDLE_MODULES.H()
 return {
     {
-        Name = "h4xscripts",
-        Accent = "#ff3333",
-        Dialog = "#c1121f",
-        Outline = "#ff8080",
-        Text = "#f5f5f7",
-        Placeholder = "#8a8a98",
-        Background = "#07050a",
-        Button = "#ff5e5e",
-        Icon = "#ff9999",
-        HeaderBackground = "#07050a",
-        HeaderOutline = "#ff8080",
-        HeaderAccent = "#ff5e5e",
-        HeaderTag = "#ff9999",
-        HeaderDesc = "#8a8a98",
-        HeaderButton = "#ff5e5e",
-        HeaderButtonText = "#FFFFFF",
-        ShortcutBackground = "#ff3333",
-        ShortcutHover = "#ff5e5e",
-        ShortcutTitle = "#f5f5f7",
-        ShortcutDesc = "#ff9999",
-    },
-    {
         Name = "Ocean Blue",
         Accent = "#0B5394",
         Dialog = "#0A3D6B",
@@ -27864,6 +27867,28 @@ return {
         ShortcutHover = "#9333EA",
         ShortcutTitle = "#FDF4FF",
         ShortcutDesc = "#BC8FDD",
+    },
+    {
+        Name = "h4xscripts",
+        Accent = "#B3121B",
+        Dialog = "#1A0709",
+        Outline = "#7A1A22",
+        Text = "#F5EDEE",
+        Placeholder = "#9A7276",
+        Background = "#0B0507",
+        Button = "#C1121F",
+        Icon = "#FF5E5E",
+        HeaderBackground = "#0B0507",
+        HeaderOutline = "#7A1A22",
+        HeaderAccent = "#C1121F",
+        HeaderTag = "#FF8080",
+        HeaderDesc = "#9A7276",
+        HeaderButton = "#C1121F",
+        HeaderButtonText = "#FFFFFF",
+        ShortcutBackground = "#1A0709",
+        ShortcutHover = "#26090D",
+        ShortcutTitle = "#F5EDEE",
+        ShortcutDesc = "#9A7276",
     },
     {
         Name = "Sunset",
@@ -30381,11 +30406,7 @@ return function(Config)
     function Element:SetDesc(text)
         Element.Desc = text
         Desc.Text = Config.RichText == false and tostring(text or "") or Text.Format(text)
-        if not text then
-            Desc.Visible = false
-        elseif not Desc.Visible then
-            Desc.Visible = true
-        end
+        Desc.Visible = Desc.Text ~= ""
     end
     
     
@@ -31677,12 +31698,27 @@ function DropdownMenu.New(Config, Dropdown, Element, CanCallback, Type)
     
     
     
+    local function GetScrollingFrame()
+        local elements=Dropdown.UIElements
+        local menu=elements and elements.Menu
+        if not menu or not menu.Parent then return end
+        local button=elements.Dropdown
+        local canvas=elements.MenuCanvas
+        if not button or not button.Parent or not canvas or not canvas.Parent then return end
+        local frame=menu:FindFirstChild("Frame")
+        local scrolling=frame and frame:FindFirstChild("ScrollingFrame")
+        if scrolling and scrolling.Parent then return scrolling end
+    end
+
     local function RecalculateCanvasSize()
-		Dropdown.UIElements.Menu.Frame.ScrollingFrame.CanvasSize = UDim2.fromOffset(0, Dropdown.UIElements.UIListLayout.AbsoluteContentSize.Y)
+		local scrolling=GetScrollingFrame()
+        if not scrolling then return end
+        scrolling.CanvasSize = UDim2.fromOffset(0, Dropdown.UIElements.UIListLayout.AbsoluteContentSize.Y)
 		
     end
 
     local function RecalculateListSize()
+        if not GetScrollingFrame() then return end
         local MaxHeight = CurrentCamera.ViewportSize.Y * 0.6
             
         local ContentY = Dropdown.UIElements.UIListLayout.AbsoluteContentSize.Y 
@@ -31702,7 +31738,8 @@ function DropdownMenu.New(Config, Dropdown, Element, CanCallback, Type)
         end
     end
     
-    function UpdatePosition()
+    local function UpdatePosition()
+        if not GetScrollingFrame() then return end
         local button = Dropdown.UIElements.Dropdown
         local menu = Dropdown.UIElements.MenuCanvas
         
@@ -31726,6 +31763,7 @@ function DropdownMenu.New(Config, Dropdown, Element, CanCallback, Type)
     
     
     function DropdownModule:Display()
+        if not GetScrollingFrame() then return end
 		local Values = Dropdown.Values
 		local Str = ""
 
@@ -31753,7 +31791,11 @@ function DropdownMenu.New(Config, Dropdown, Element, CanCallback, Type)
     
     
     function DropdownModule:Refresh(Values)
-        for _, Elementt in next, Dropdown.UIElements.Menu.Frame.ScrollingFrame:GetChildren() do
+        local scrolling=GetScrollingFrame()
+        if not scrolling then return false end
+        Values=type(Values)=="table" and Values or Dropdown.Values or {}
+        Dropdown.Values=Values
+        for _, Elementt in next, scrolling:GetChildren() do
             if not Elementt:IsA("UIListLayout") then
                 Elementt:Destroy()
             end
@@ -31807,7 +31849,7 @@ function DropdownMenu.New(Config, Dropdown, Element, CanCallback, Type)
                 Size = UDim2.new(1,0,0,36),
                 
                 ImageTransparency = 1, 
-                Parent = Dropdown.UIElements.Menu.Frame.ScrollingFrame,
+                Parent = scrolling,
                 
                 ImageColor3 = Color3.new(1,1,1),
                 
@@ -32013,6 +32055,7 @@ function DropdownMenu.New(Config, Dropdown, Element, CanCallback, Type)
     RecalculateCanvasSize()
     
     function DropdownModule:Open()
+        if not GetScrollingFrame() then return false end
         if CanCallback then
             Dropdown.UIElements.Menu.Visible = true
             Dropdown.UIElements.MenuCanvas.Visible = true
@@ -32041,6 +32084,7 @@ function DropdownMenu.New(Config, Dropdown, Element, CanCallback, Type)
         end
     end
     function DropdownModule:Close()
+        if not GetScrollingFrame() then return false end
         Dropdown.Opened = false
         
         Tween(Dropdown.UIElements.Menu, 0.25, {
@@ -32054,11 +32098,13 @@ function DropdownMenu.New(Config, Dropdown, Element, CanCallback, Type)
         
         task.spawn(function()
             task.wait(.1)
+            if not GetScrollingFrame() then return end
             Dropdown.UIElements.Menu.Visible = false
         end)
         
         task.spawn(function()
             task.wait(.25)
+            if not GetScrollingFrame() then return end
             Dropdown.UIElements.MenuCanvas.Visible = false
             Dropdown.UIElements.MenuCanvas.Active = false
         end)
@@ -32070,6 +32116,7 @@ function DropdownMenu.New(Config, Dropdown, Element, CanCallback, Type)
     
     Creator.AddSignal(UserInputService.InputBegan, function(Input)
         if Input.UserInputType == Enum.UserInputType.MouseButton1 or Input.UserInputType == Enum.UserInputType.Touch then
+            if not GetScrollingFrame() then return end
             local menuCanvas = Dropdown.UIElements.MenuCanvas
             local AbsPos, AbsSize = menuCanvas.AbsolutePosition, menuCanvas.AbsoluteSize
             
@@ -32102,7 +32149,8 @@ function DropdownMenu.New(Config, Dropdown, Element, CanCallback, Type)
 end
 
 
-return DropdownMenu end function __DARKLUA_BUNDLE_MODULES.ab()
+return DropdownMenu
+end function __DARKLUA_BUNDLE_MODULES.ab()
 local UserInputService = game:GetService("UserInputService")
 local Mouse = game:GetService("Players").LocalPlayer:GetMouse()
 local Camera = game:GetService("Workspace").CurrentCamera
@@ -33416,7 +33464,7 @@ function Element:New(Config)
         Expandable = false,
     }
     
-    local destroyed = false
+    local destroyed, layoutQueued, layoutConnection, sizeTween = false, false, nil, nil
     local setOpened = SectionState.Bind(Config.Window, Section, Config,
         Config.ParentTable and Config.ParentTable._SectionStateKey, "content")
     local Icon
@@ -33575,7 +33623,9 @@ function Element:New(Config)
     function Section:Destroy()
         if destroyed then return end
         destroyed = true
-        for _,element in next, Section.Elements do
+        if layoutConnection then layoutConnection:Disconnect(); layoutConnection = nil end
+        if sizeTween then sizeTween:Cancel(); sizeTween = nil end
+        for _,element in next, table.clone(Section.Elements) do
             element:Destroy()
         end
         
@@ -33589,26 +33639,45 @@ function Element:New(Config)
         Main:Destroy()
     end
     
+    function Section:RefreshLayout(animate)
+        if destroyed or Config.Window.Destroyed or not Section.Expandable then return end
+        local scale = Config.Window.GetUIScale and Config.Window:GetUIScale() or Config.UIScale or 1
+        local height = Section.HeaderSize + (Section.Opened and Main.Content.AbsoluteSize.Y / math.max(0.01, scale) or 0)
+        if sizeTween then sizeTween:Cancel(); sizeTween = nil end
+        if animate then
+            sizeTween = Tween(Main, Section.Opened and 0.33 or 0.26, {
+                Size = UDim2.new(1, 0, 0, height)
+            }, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
+            sizeTween:Play()
+        else
+            Main.Size = UDim2.new(1, 0, 0, height)
+        end
+    end
+
+    layoutConnection = Main.Content:GetPropertyChangedSignal("AbsoluteSize"):Connect(function()
+        if destroyed or layoutQueued or not Section.Opened then return end
+        layoutQueued = true
+        task.defer(function()
+            layoutQueued = false
+            if not destroyed and Section.Opened then Section:RefreshLayout(false) end
+        end)
+    end)
+
     function Section:Open()
         if not destroyed and not Config.Window.Destroyed and Section.Expandable then
             if not Section.Opened then setOpened(true) end
-            Tween(Main, 0.33, {
-                Size = UDim2.new(1,0,0, Section.HeaderSize + (Main.Content.AbsoluteSize.Y/Config.UIScale))
-            }, Enum.EasingStyle.Quint, Enum.EasingDirection.Out):Play()
-            
+            Section:RefreshLayout(true)
             Tween(ChevronIconFrame.ImageLabel, 0.1, {Rotation = 180}, Enum.EasingStyle.Quint, Enum.EasingDirection.Out):Play()
         end
     end
     function Section:Close()
         if not destroyed and not Config.Window.Destroyed and Section.Expandable then
             if Section.Opened then setOpened(false) end
-            Tween(Main, 0.26, {
-                Size = UDim2.new(1,0,0, Section.HeaderSize)
-            }, Enum.EasingStyle.Quint, Enum.EasingDirection.Out):Play()
+            Section:RefreshLayout(true)
             Tween(ChevronIconFrame.ImageLabel, 0.1, {Rotation = 0}, Enum.EasingStyle.Quint, Enum.EasingDirection.Out):Play()
         end
     end
-    
+
     Creator.AddSignal(Main.Top.MouseButton1Click, function()
         if Section.Expandable then
             if Section.Opened then
@@ -33638,7 +33707,7 @@ function Element:New(Config)
             Main.Content.Visible = true
         end
         if Section.Opened and Section.Expandable then
-            Main.Size = UDim2.new(1, 0, 0, Section.HeaderSize + Main.Content.AbsoluteSize.Y / Config.UIScale)
+            Section:RefreshLayout(false)
             ChevronIconFrame.ImageLabel.Rotation = 180
         end
         
@@ -37914,18 +37983,39 @@ return function(window, options)
     local tab = window:Tab(config)
     local settings = window.UISettings
     tab.Controls = {}
-    local themeNames = { "Vibe Midnight", "Vibe Violet" }
-    local otherThemes = {}
-    for name in pairs(window.Library:GetThemes()) do
-        if name ~= "Vibe Midnight" and name ~= "Vibe Violet" then table.insert(otherThemes, name) end
+    local function buildThemeNames()
+        local library = window.Library
+        local custom = window.CustomThemes or {}
+        local ordered, builtIn = {}, {}
+        for name in pairs(library:GetThemes()) do
+            if custom[name] then table.insert(ordered, name) else table.insert(builtIn, name) end
+        end
+        table.sort(ordered)
+        table.sort(builtIn)
+        if config.BuiltInThemes == false then return ordered end
+        local names = {}
+        for _, name in ipairs({ "Vibe Midnight", "Vibe Violet" }) do
+            if library:GetThemes()[name] then table.insert(names, name) end
+        end
+        for _, name in ipairs(builtIn) do
+            if name ~= "Vibe Midnight" and name ~= "Vibe Violet" then table.insert(names, name) end
+        end
+        for _, name in ipairs(ordered) do table.insert(names, name) end
+        return names
     end
-    table.sort(otherThemes)
-    for _, name in ipairs(otherThemes) do table.insert(themeNames, name) end
     tab:Section({ Title = "APPEARANCE" })
     tab.Controls.Theme = tab:Dropdown({
-        Title = "Theme", Values = themeNames, Value = settings.Theme, Flag = "ui.theme",
-        AllowNone = false, Callback = function(value) window:SetTheme(value) end,
+        Title = "Theme", Values = buildThemeNames(), Value = settings.Theme, Flag = "ui.theme",
+        AllowNone = false, SearchBarEnabled = true, Callback = function(value) window:SetTheme(value) end,
     })
+    window.RefreshThemes = function()
+        if tab.Controls.Theme and tab.Controls.Theme.Refresh then
+            tab.Controls.Theme:Refresh(buildThemeNames())
+        end
+    end
+    window.Library.OnThemeAddedFunction = function()
+        if window.RefreshThemes then window.RefreshThemes() end
+    end
     tab.Controls.Transparent = tab:Toggle({
         Title = "Transparent window", Desc = "Let a little of the game show through.", Value = settings.Transparent, Flag = "ui.transparent",
         Callback = function(value) window:ToggleTransparency(value) end,
@@ -38251,24 +38341,48 @@ function WindUI:OnThemeChange(func)
 end
 
 function WindUI:AddTheme(LTheme)
+    if type(LTheme) ~= "table" or type(LTheme.Name) ~= "string" then return nil end
     WindUI.Themes[LTheme.Name] = LTheme
+    if WindUI.Window then
+        WindUI.Window.CustomThemes = WindUI.Window.CustomThemes or {}
+        WindUI.Window.CustomThemes[LTheme.Name] = true
+    end
+    if WindUI.OnThemeAddedFunction then
+        WindUI.OnThemeAddedFunction(LTheme)
+    end
     return LTheme
 end
 
+function WindUI:RemoveTheme(Name)
+    if not WindUI.Themes[Name] then return false end
+    if WindUI.Theme == WindUI.Themes[Name] then return false end
+    WindUI.Themes[Name] = nil
+    if WindUI.Window and WindUI.Window.CustomThemes then
+        WindUI.Window.CustomThemes[Name] = nil
+    end
+    if WindUI.OnThemeAddedFunction then
+        WindUI.OnThemeAddedFunction(nil)
+    end
+    return true
+end
+
 function WindUI:SetTheme(Value)
-    if WindUI.Themes[Value] then
-        WindUI.Theme = WindUI.Themes[Value]
-        Creator.SetTheme(WindUI.Themes[Value])
+    local Theme = type(Value) == "table" and Value or WindUI.Themes[Value]
+    if Theme then
+        local Name = type(Value) == "table" and Value.Name or Value
+        if type(Value) == "table" and Name then WindUI.Themes[Name] = Theme end
+        WindUI.Theme = Theme
+        Creator.SetTheme(Theme)
         if WindUI.Window and WindUI.Window.PersistTheme then
-            WindUI.Window.PersistTheme(Value)
+            WindUI.Window.PersistTheme(Name)
         end
         
         if WindUI.OnThemeChangeFunction then
-            WindUI.OnThemeChangeFunction(Value)
+            WindUI.OnThemeChangeFunction(Name)
         end
         
         
-        return WindUI.Themes[Value]
+        return Theme
     end
     return nil
 end

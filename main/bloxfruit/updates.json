@@ -12,9 +12,11 @@
   "Updates": [
     {
       "Version": "1.0.8",
-      "Title": "Fixes & Performance",
+      "Title": "Fixes, Features & Performance",
       "TitleColor": "#7DD3FC",
       "Changes": [
+        "[+] Added Find Selected Fruit.",
+        "[/] Fixed Elite Boss stopping other features.",
         "[/] Fixed Sea 2 Team raid.",
         "[/] Fixed Auto Detective last question not working.",
         "[/] Improved Auto Event speed drastically.",

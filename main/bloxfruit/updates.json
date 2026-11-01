@@ -11,6 +11,20 @@
   },
   "Updates": [
     {
+      "Version": "1.0.8",
+      "Title": "Fixes & Performance",
+      "TitleColor": "#7DD3FC",
+      "Changes": [
+        "[/] Fixed Sea 2 Team raid.",
+        "[/] Fixed Auto Detective last question not working.",
+        "[/] Improved Auto Event speed drastically.",
+        "[/] Improved Card Choosing memory minigame speed.",
+        "[/] Fixed Auto Farm Skyland bug.",
+        "[/] Fixed wrong name for Great Pumpkin.",
+        "[/] Improved optimizations."
+      ]
+    },
+    {
       "Version": "1.0.6",
       "Title": "Halloween Fixes",
       "TitleColor": "#FF9A45",
@@ -33,7 +47,6 @@
         "[+] Auto Handle Event and automatic collection of dropped Halloween candy, including proximity-prompt pickups.",
         "[+] Auto Break Pumpkin, Auto Kill Jack o' Lantern, and Auto Kill Dapper Jack.",
         "[+] Auto Summon Dapper Jack with material and ritual-availability checks.",
-
         "[/] Fixed one attackign snowman in sea1.",
         "[/] Fixed one major source of lag.",
         "[/] Improved Halloween enemy detection, positioning above enemies, and attacks against valid target groups.",

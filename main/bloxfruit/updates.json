@@ -11,6 +11,19 @@
   },
   "Updates": [
     {
+      "Version": "1.0.6",
+      "Title": "Halloween Fixes",
+      "TitleColor": "#FF9A45",
+      "Changes": [
+        "[/] Fixed wheel pushing.",
+        "[/] Fixed pumpkins interrupting Trick or Treat.",
+        "[/] Faster event dialogues.",
+        "[/] Improved card matching.",
+        "[/] Fixed door-enemy targeting.",
+        "[/] Prevented targeting normal Snowmen."
+      ]
+    },
+    {
       "Version": "1.0.5",
       "Title": "Halloween Automation & Performance",
       "TitleColor": "#FF9A45",

@@ -33678,11 +33678,18 @@ function Element:New(Config)
     local ElementsModule = Config.ElementsModule
     
     ElementsModule.Load(Section, Main.Content, ElementsModule.Elements, Config.Window, Config.WindUI, function()
+        if destroyed or Config.Window.Destroyed or not Main.Parent then return end
         if not Section.Expandable then
             Section.Expandable = true
+            Main.AutomaticSize = "None"
+            Main.Top.Size = UDim2.new(1, 0, 0, Section.HeaderSize)
+            Main.Top.AutomaticSize = "None"
+            Main.Content.Visible = true
             ChevronIconFrame.Visible = true
+            ChevronIconFrame.ImageLabel.Rotation = Section.Opened and 180 or 0
             UpdateTitleSize()
         end
+        Section:RefreshLayout(false)
     end, ElementsModule, Config.UIScale, Config.Tab)
     
     
@@ -33713,6 +33720,7 @@ function Element:New(Config)
     
     function Section:RefreshLayout(animate)
         if destroyed or Config.Window.Destroyed or not Section.Expandable then return end
+        Main.Content.Visible = true
         local scale = Config.Window.GetUIScale and Config.Window:GetUIScale() or Config.UIScale or 1
         local height = Section.HeaderSize + (Section.Opened and Main.Content.AbsoluteSize.Y / math.max(0.01, scale) or 0)
         if sizeTween then sizeTween:Cancel(); sizeTween = nil end
@@ -33758,31 +33766,6 @@ function Element:New(Config)
                 Section:Open()
             end
         end
-    end)
-    
-    task.spawn(function()
-        task.wait(0.02)
-        if destroyed or Config.Window.Destroyed or not Main.Parent then return end
-        if Section.Expandable then
-            
-            
-            
-            
-            
-                
-            
-            
-            Main.Size = UDim2.new(1,0,0,Section.HeaderSize)
-            Main.AutomaticSize = "None"
-            Main.Top.Size = UDim2.new(1,0,0,Section.HeaderSize)
-            Main.Top.AutomaticSize = "None"
-            Main.Content.Visible = true
-        end
-        if Section.Opened and Section.Expandable then
-            Section:RefreshLayout(false)
-            ChevronIconFrame.ImageLabel.Rotation = 180
-        end
-        
     end)
     
     return Section.__type, Section

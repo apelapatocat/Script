@@ -16,6 +16,7 @@
       "TitleColor": "#7DD3FC",
       "Changes": [
         "[+] Added Find Selected Fruit.",
+        "[/] Fixed Search bar not working properly",
         "[/] Fixed Elite Boss stopping other features.",
         "[/] Fixed Sea 2 Team raid.",
         "[/] Fixed Auto Detective last question not working.",

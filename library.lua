@@ -34620,6 +34620,8 @@ return {
                 config.ElementsModule = ElementsModule
         
                 local elementInstance, content = module:New(config)
+                content.ParentTable = tbl
+                content.Tab = config.Tab
                 
                 if config.Flag and typeof(config.Flag) == "string" then
                     content.Flag = config.Flag
@@ -34662,9 +34664,11 @@ return {
                 if frame then
                     content.ElementFrame = frame.UIElements.Main
                     function content:SetTitle(title)
+                        content.Title = title
                         frame:SetTitle(title)
                     end
                     function content:SetDesc(desc)
+                        content.Desc = desc
                         frame:SetDesc(desc)
                     end
                     function content:Highlight()
@@ -34692,7 +34696,7 @@ return {
                 
                 Window.AllElements[config.GlobalIndex] = content
                 tbl.Elements[config.Index] =  content
-                if Tab then Tab.Elements[config.Index] =  content end
+                if Tab then table.insert(Tab.Elements, content) end
                 
                 if Window.NewElements then
                     tbl:UpdateAllElementShapes(tbl)
@@ -35198,30 +35202,38 @@ function TabModule.New(Config, UIScale)
     
     
     
-    function Tab:ScrollToTheElement(elemindex)
-        Tab.UIElements.ContainerFrame.ScrollingEnabled = false
-        Tween(Tab.UIElements.ContainerFrame, .45, 
-            { 
-                CanvasPosition = Vector2.new(
-                    0, 
-                    
-                    Tab.Elements[elemindex].ElementFrame.AbsolutePosition.Y 
-                    - Tab.UIElements.ContainerFrame.AbsolutePosition.Y  
-                    - Tab.UIElements.ContainerFrame.UIPadding.PaddingTop.Offset 
-                ) 
-            }, 
-            Enum.EasingStyle.Quint, Enum.EasingDirection.Out
-        ):Play()
-        
+    function Tab:ScrollToTheElement(target)
+        local element = type(target) == "table" and target or Tab.Elements[target]
+        local frame = element and element.ElementFrame
+        if not frame or not frame.Parent then return Tab end
+        Tab._SearchScrollGeneration = (Tab._SearchScrollGeneration or 0) + 1
+        local generation = Tab._SearchScrollGeneration
+        if Tab._SearchScrollTween then Tab._SearchScrollTween:Cancel(); Tab._SearchScrollTween = nil end
+        local parent, seen, expanded = element.ParentTable, {}, false
+        while parent and parent ~= Tab and not seen[parent] do
+            seen[parent] = true
+            if parent.__type == "Section" and parent.Open and not parent.Opened then parent:Open(); expanded = true end
+            parent = parent.ParentTable
+        end
         task.spawn(function()
-            task.wait(.48)
             
-            if Tab.Elements[elemindex].Highlight then
-                Tab.Elements[elemindex]:Highlight()
-                Tab.UIElements.ContainerFrame.ScrollingEnabled = true
-            end
+            
+            task.wait(expanded and 0.36 or 0)
+            if Window.Destroyed or generation ~= Tab._SearchScrollGeneration or not frame.Parent or Tab.Selected == false then return end
+            local container = Tab.UIElements.ContainerFrame
+            if not container or not container.Parent then return end
+            local padding = container:FindFirstChildOfClass("UIPadding")
+            local scale = Window.GetUIScale and Window:GetUIScale() or UIScale or 1
+            local y = container.CanvasPosition.Y + (frame.AbsolutePosition.Y - container.AbsolutePosition.Y) / math.max(0.01, scale)
+                - (padding and padding.PaddingTop.Offset or 0)
+            local tween = Tween(container, 0.45, {CanvasPosition = Vector2.new(0, math.max(0, y))}, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
+            Tab._SearchScrollTween = tween
+            tween:Play()
+            task.wait(0.48)
+            if Window.Destroyed or generation ~= Tab._SearchScrollGeneration then return end
+            Tab._SearchScrollTween = nil
+            if frame.Parent and Tab.Selected ~= false and element.Highlight then element:Highlight() end
         end)
-        
         return Tab
     end
 	
@@ -35556,6 +35568,46 @@ end
 
 return Section
 end function __DARKLUA_BUNDLE_MODULES.aq()
+local SearchIndex = {}
+
+local function normalize(value)
+    return tostring(value or ""):gsub("<[^>]->", ""):gsub("%[color=[^%]]+%]", ""):gsub("%[/color%]", "")
+        :gsub("%s+", " "):match("^%s*(.-)%s*$"):lower()
+end
+
+function SearchIndex.Query(tabs, query)
+    query = normalize(query)
+    if query == "" then return {} end
+    local function contains(value)
+        return normalize(value):find(query, 1, true) ~= nil
+    end
+    local results = {}
+    for tabIndex, tab in next, tabs do
+        local elements, seen = {}, {}
+        local function visit(list)
+            for index, element in next, list or {} do
+                if type(element) == "table" and not seen[element] then
+                    seen[element] = true
+                    if element.__type == "Section" then
+                        visit(element.Elements)
+                    elseif (not element.ElementFrame or element.ElementFrame.Parent)
+                        and (contains(element.Title) or contains(element.Desc)) then
+                        elements[#elements + 1] = {Title = element.Title, Desc = element.Desc,
+                            Original = element, __type = element.__type, Index = index}
+                    end
+                end
+            end
+        end
+        visit(tab.Elements)
+        if contains(tab.Title) or #elements > 0 then
+            results[tabIndex] = {Tab = tab, Title = tab.Title, Icon = tab.Icon, Elements = elements}
+        end
+    end
+    return results
+end
+
+return SearchIndex
+end function __DARKLUA_BUNDLE_MODULES.ar()
 return { 
     Tab         = "table-of-contents",
     Paragraph   = "type",
@@ -35567,7 +35619,7 @@ return {
     Dropdown    = "chevrons-up-down",
     Code        = "terminal",
     Colorpicker = "palette",
-}end function __DARKLUA_BUNDLE_MODULES.ar()
+}end function __DARKLUA_BUNDLE_MODULES.as()
 local UserInputService = game:GetService("UserInputService")
 
 local SearchBar = {
@@ -35577,6 +35629,7 @@ local SearchBar = {
 
 
 local Creator = __DARKLUA_BUNDLE_MODULES.load('l')
+local SearchIndex = __DARKLUA_BUNDLE_MODULES.load('aq')
 local New = Creator.New
 local Tween = Creator.Tween
 
@@ -35589,7 +35642,7 @@ function SearchBar.new(TabModule, Parent, OnClose)
         Width = 400,
         MaxHeight = 380,
         
-        Icons = __DARKLUA_BUNDLE_MODULES.load('aq')
+        Icons = __DARKLUA_BUNDLE_MODULES.load('ar')
     }
     
     
@@ -35933,60 +35986,10 @@ function SearchBar.new(TabModule, Parent, OnClose)
         return Tab
     end
     
-    local function ContainsText(str, query)
-        if not query or query == "" then
-            return false
-        end
-        
-        if not str or str == "" then
-            return false
-        end
-        
-        local lowerStr = string.lower(str)
-        local lowerQuery = string.lower(query)
-        
-        return string.find(lowerStr, lowerQuery, 1, true) ~= nil
-    end
-    
     local function Search(query)
-        if not query or query == "" then
-            return {}
-        end
-        
-        local results = {}
-        for tabindex, tab in next, TabModule.Tabs do
-            local tabMatches = ContainsText(tab.Title or "", query)
-            local elementResults = {}
-            
-            for elemindex, elem in next, tab.Elements do
-                if elem.__type ~= "Section" then
-                    local titleMatches = ContainsText(elem.Title or "", query)
-                    local descMatches = ContainsText(elem.Desc or "", query)
-                    
-                    if titleMatches or descMatches then
-                        elementResults[elemindex] = {
-                            Title = elem.Title,
-                            Desc = elem.Desc,
-                            Original = elem,
-                            __type = elem.__type,
-                            Index = elemindex,
-                        }
-                    end
-                end
-            end
-            
-            if tabMatches or next(elementResults) ~= nil then
-                results[tabindex] = { 
-                    Tab = tab,
-                    Title = tab.Title,
-                    Icon = tab.Icon,
-                    Elements = elementResults,
-                }
-            end
-        end
-        return results
+        return SearchIndex.Query(TabModule.Tabs, query)
     end
-    
+
     function SearchBarModule:Search(query)
         query = query or ""
         
@@ -36015,7 +36018,7 @@ function SearchBar.new(TabModule, Parent, OnClose)
                             TabModule:SelectTab(tabindex) 
                             if i.Tab.ScrollToTheElement then
                                 
-                                i.Tab:ScrollToTheElement(e.Index)
+                                i.Tab:ScrollToTheElement(e.Original)
                             end
                             
                         end)
@@ -36093,7 +36096,7 @@ function SearchBar.new(TabModule, Parent, OnClose)
 end
 
 return SearchBar
-end function __DARKLUA_BUNDLE_MODULES.as()
+end function __DARKLUA_BUNDLE_MODULES.at()
 
 local UserInputService = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
@@ -37863,7 +37866,7 @@ New("Frame", {
     
     
     if not Window.HideSearchBar then
-        local SearchBar = __DARKLUA_BUNDLE_MODULES.load('ar')
+        local SearchBar = __DARKLUA_BUNDLE_MODULES.load('as')
         local IsOpen = false
         local CurrentSearchBar
     
@@ -37942,7 +37945,7 @@ New("Frame", {
     end
     return Window
 end
-end function __DARKLUA_BUNDLE_MODULES.at()
+end function __DARKLUA_BUNDLE_MODULES.au()
 local Storage = __DARKLUA_BUNDLE_MODULES.load('i')
 
 return function(window, tab)
@@ -38030,7 +38033,7 @@ return function(window, tab)
     end)
     return controls
 end
-end function __DARKLUA_BUNDLE_MODULES.au()
+end function __DARKLUA_BUNDLE_MODULES.av()
 return function(window, options)
     local config = table.clone(options or {})
     config.Title = config.Title or "Settings"
@@ -38096,10 +38099,10 @@ return function(window, options)
         Callback = function(value) window:SetNotificationSounds(value) end,
     })
     tab:Button({ Title = "Center window", Icon = "scan", Callback = function() window:SetToTheCenter() end })
-    if config.Configs then tab.Controls.Configs = __DARKLUA_BUNDLE_MODULES.load('at')(window, tab) end
+    if config.Configs then tab.Controls.Configs = __DARKLUA_BUNDLE_MODULES.load('au')(window, tab) end
     return tab
 end
-end function __DARKLUA_BUNDLE_MODULES.av()
+end function __DARKLUA_BUNDLE_MODULES.aw()
 local Creator = __DARKLUA_BUNDLE_MODULES.load('l')
 local RunService = game:GetService("RunService")
 local MarketplaceService = game:GetService("MarketplaceService")
@@ -38135,7 +38138,7 @@ return function(window, tab, options)
     end)
     return paragraph
 end
-end function __DARKLUA_BUNDLE_MODULES.aw()
+end function __DARKLUA_BUNDLE_MODULES.ax()
 local Creator = __DARKLUA_BUNDLE_MODULES.load('l')
 local HttpService = game:GetService("HttpService")
 
@@ -38186,7 +38189,7 @@ return function(window, tab, options)
     end
     return controller
 end
-end function __DARKLUA_BUNDLE_MODULES.ax()
+end function __DARKLUA_BUNDLE_MODULES.ay()
 local Creator = __DARKLUA_BUNDLE_MODULES.load('l')
 local HttpService = game:GetService("HttpService")
 
@@ -38537,7 +38540,7 @@ function WindUI:Text(value, color)
 end
 
 function WindUI:CreateWindow(Config)
-    local CreateWindow = __DARKLUA_BUNDLE_MODULES.load('as')
+    local CreateWindow = __DARKLUA_BUNDLE_MODULES.load('at')
     if WindUI.Window then
         warn("You cannot create more than one window")
         return
@@ -38631,16 +38634,16 @@ function WindUI:CreateWindow(Config)
     Preferences.Attach(Window, WindUI, Config, settings, hadSaved, folderPath)
     Runtime.Register(folderPath, Window)
     function Window:SettingsTab(options)
-        return __DARKLUA_BUNDLE_MODULES.load('au')(Window, options)
+        return __DARKLUA_BUNDLE_MODULES.load('av')(Window, options)
     end
     function Window:SessionStats(tab, options)
-        return __DARKLUA_BUNDLE_MODULES.load('av')(Window, tab, options)
-    end
-    function Window:Community(tab, options)
         return __DARKLUA_BUNDLE_MODULES.load('aw')(Window, tab, options)
     end
-    function Window:Feedback(tab, options)
+    function Window:Community(tab, options)
         return __DARKLUA_BUNDLE_MODULES.load('ax')(Window, tab, options)
+    end
+    function Window:Feedback(tab, options)
+        return __DARKLUA_BUNDLE_MODULES.load('ay')(Window, tab, options)
     end
     function Window:CopyText(link, options)
         options = options or {}

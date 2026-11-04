@@ -11,60 +11,78 @@
   },
   "Updates": [
     {
-      "Version": "1.0.8",
-      "Title": "Fixes, Features & Performance",
-      "TitleColor": "#7DD3FC",
-      "Changes": [
-        "[+] Added Find Selected Fruit.",
-        "[/] Fixed Search bar not working properly",
-        "[/] Fixed Elite Boss stopping other features.",
-        "[/] Fixed Sea 2 Team raid.",
-        "[/] Fixed Auto Detective last question not working.",
-        "[/] Improved Auto Event speed drastically.",
-        "[/] Improved Card Choosing memory minigame speed.",
-        "[/] Fixed Auto Farm Skyland bug.",
-        "[/] Fixed wrong name for Great Pumpkin.",
-        "[/] Improved optimizations."
-      ]
-    },
-    {
-      "Version": "1.0.6",
-      "Title": "Halloween Fixes",
-      "TitleColor": "#FF9A45",
-      "Changes": [
-        "[/] Fixed wheel pushing.",
-        "[/] Fixed pumpkins interrupting Trick or Treat.",
-        "[/] Faster event dialogues.",
-        "[/] Improved card matching.",
-        "[/] Fixed door-enemy targeting.",
-        "[/] Prevented targeting normal Snowmen."
-      ]
-    },
-    {
-      "Version": "1.0.5",
-      "Title": "Halloween Automation & Performance",
-      "TitleColor": "#FF9A45",
-      "Changes": [
-        "[+] Auto Roll Gacha: Spooky Gacha .",
-        "[+] Auto Trick or Treat: door interactions, event choices, memory minigames, portal encounters, and event combat.",
-        "[+] Auto Handle Event and automatic collection of dropped Halloween candy, including proximity-prompt pickups.",
-        "[+] Auto Break Pumpkin, Auto Kill Jack o' Lantern, and Auto Kill Dapper Jack.",
-        "[+] Auto Summon Dapper Jack with material and ritual-availability checks.",
-        "[/] Fixed one attackign snowman in sea1.",
-        "[/] Fixed one major source of lag.",
-        "[/] Improved Halloween enemy detection, positioning above enemies, and attacks against valid target groups.",
-        "[/] Fixed Auto Break Pumpkin competing with Trick or Treat; pumpkin farming pauses during active events.",
-        "[/] Fixed Dapper Jack summoning moving to the NPC without enough materials.",
-        "[/] Improved Halloween candy pickup handling and event coordination."
-      ]
-    },
-    {
-      "Version": "1.0.0",
-      "Title": "The Beginning",
-      "TitleColor": "#DB9CFF",
-      "Changes": [
-        "[+] Added Nothing Yet"
-      ]
-    }
+                Version = "1.0.9",
+                Title = "Fixes, Features & Performance",
+                TitleColor = "#7DD3FC",
+                Changes = {
+                    "[+] Added CFrame-based Custom Walk Speed.",
+                    "[+] Added Allow Automatic Server Hops toggle.",
+                    "[+] Added improved Sea Event target selection.",
+                    "[/] Fixed Sea Events Lua syntax error.",
+                    "[/] Fixed unwanted automatic server hopping.",
+                    "[/] Improved Auto Fishing casting and recovery.",
+                    "[/] Improved Dragon Breath purchase handling.",
+                    "[/] Improved Prehistoric Event activation.",
+                    "[/] Improved Draco V4 upgrade checks.",
+                    "[/] Improved Anti AFK error handling.",
+                    "[/] Restored automatic Spooky Gacha result closing.",
+                    "[/] Improved CFrame movement collision and respawn handling.",
+                    "[/] Improved overall stability and optimizations.",
+                },
+            },
+            {
+                Version = "1.0.8",
+                Title = "Fixes, Features & Performance",
+                TitleColor = "#7DD3FC",
+                Changes = {
+                    "[+] Added Find Selected Fruit.",
+                    "[/] Fixed Search bar not working properly",
+                    "[/] Fixed Elite Boss stopping other features.",
+                    "[/] Fixed Sea 2 Team raid.",
+                    "[/] Fixed Auto Detective last question not working.",
+                    "[/] Improved Auto Event speed drastically.",
+                    "[/] Improved Card Choosing memory minigame speed.",
+                    "[/] Fixed Auto Farm Skyland bug.",
+                    "[/] Fixed wrong name for Great Pumpkin.",
+                    "[/] Improved optimizations.",
+                },
+            },
+            {
+                Version = "1.0.6",
+                Title = "Halloween Fixes",
+                TitleColor = "#FF9A45",
+                Changes = {
+                    "[/] Fixed wheel pushing.",
+                    "[/] Fixed pumpkins interrupting Trick or Treat.",
+                    "[/] Faster event dialogues.",
+                    "[/] Improved card matching.",
+                    "[/] Fixed door-enemy targeting.",
+                    "[/] Prevented targeting normal Snowmen.",
+                },
+            },
+            {
+                Version = "1.0.5",
+                Title = "Halloween Automation & Performance",
+                TitleColor = "#FF9A45",
+                Changes = {
+                    "[+] Auto Roll Gacha: Spooky Gacha .",
+                    "[+] Auto Trick or Treat: door interactions, event choices, memory minigames, portal encounters, and event combat.",
+                    "[+] Auto Handle Event and automatic collection of dropped Halloween candy, including proximity-prompt pickups.",
+                    "[+] Auto Break Pumpkin, Auto Kill Jack o' Lantern, and Auto Kill Dapper Jack.",
+                    "[+] Auto Summon Dapper Jack with material and ritual-availability checks.",
+                    "[/] Fixed one attackign snowman in sea1.",
+                    "[/] Fixed one major source of lag.",
+                    "[/] Improved Halloween enemy detection, positioning above enemies, and attacks against valid target groups.",
+                    "[/] Fixed Auto Break Pumpkin competing with Trick or Treat; pumpkin farming pauses during active events.",
+                    "[/] Fixed Dapper Jack summoning moving to the NPC without enough materials.",
+                    "[/] Improved Halloween candy pickup handling and event coordination.",
+                },
+            },
+            {
+                Version = "1.0.0",
+                Title = "The Beginning",
+                TitleColor = "#DB9CFF",
+                Changes = { "[+] Added Nothing Yet" },
+            },
   ]
 }

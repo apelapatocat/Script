@@ -25186,95 +25186,75 @@ end
 
 
 
-function Creator.Drag(mainFrame, dragFrames, ondrag, preview, uiScale)
-    local dragInput, dragStart, startPos, endConnection
-    local previewTarget, previewConnection
-    local DragModule = { CanDraggable = true }
-
-    if type(dragFrames) ~= "table" then
+function Creator.Drag(mainFrame, dragFrames, ondrag)
+    local currentDragFrame = nil
+    local dragging, dragStart, startPos
+    local DragModule = {
+        CanDraggable = true
+    }
+    
+    if not dragFrames or type(dragFrames) ~= "table" then
         dragFrames = {mainFrame}
     end
-
-    local function finish(commit)
-        if not dragInput then return end
-        dragInput = nil
-        endConnection:Disconnect()
-        endConnection = nil
-
-        if previewConnection then
-            previewConnection:Disconnect()
-            previewConnection = nil
-            if commit then
-                mainFrame.Position = previewTarget
-            end
-            preview.Visible = false
-            previewTarget = nil
-        end
-        if ondrag then ondrag(false) end
-    end
-
-    for _, dragFrame in ipairs(dragFrames) do
-        dragFrame.InputBegan:Connect(function(input)
-            local kind = input.UserInputType
-            if dragInput or not DragModule.CanDraggable then return end
-            if kind ~= Enum.UserInputType.MouseButton1 and kind ~= Enum.UserInputType.Touch then return end
-
-            dragInput = input
-            dragStart = input.Position
-            startPos = mainFrame.Position
-            if preview then
-                preview.AnchorPoint = mainFrame.AnchorPoint
-                preview.Size = mainFrame.Size
-                preview.Position = startPos
-            end
-
-            endConnection = input:GetPropertyChangedSignal("UserInputState"):Connect(function()
-                local state = input.UserInputState
-                if state == Enum.UserInputState.End or state == Enum.UserInputState.Cancel then
-                    finish(state == Enum.UserInputState.End)
-                end
-            end)
-            if ondrag then ondrag(true, dragFrame) end
-        end)
-    end
-
-    Creator.AddSignal(UserInputService.InputChanged, function(input)
-        if not dragInput or not DragModule.CanDraggable then return end
-        if dragInput.UserInputType == Enum.UserInputType.Touch then
-            if input ~= dragInput then return end
-        elseif input.UserInputType ~= Enum.UserInputType.MouseMovement then
-            return
-        end
-
-        local scale = uiScale and math.max(uiScale.Scale, 0.01) or 1
-        local delta = (input.Position - dragStart) / scale
-        local position = UDim2.new(
+    
+    local function update(input)
+        if not dragging or not DragModule.CanDraggable then return end
+        
+        local delta = input.Position - dragStart
+        Creator.Tween(mainFrame, 0.02, {Position = UDim2.new(
             startPos.X.Scale, startPos.X.Offset + delta.X,
             startPos.Y.Scale, startPos.Y.Offset + delta.Y
-        )
-        if preview then
-            if not previewConnection and position == startPos then return end
-            previewTarget = position
-            if not previewConnection then
-                preview.Visible = true
-                previewConnection = RunService.PreRender:Connect(function(dt)
-                    local alpha = 1 - math.exp(-36 * dt)
-                    preview.Position = preview.Position:Lerp(previewTarget, alpha)
-                end)
+        )}):Play()
+    end
+    
+    for _, dragFrame in pairs(dragFrames) do
+        dragFrame.InputBegan:Connect(function(input)
+            if (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) and DragModule.CanDraggable then
+                if currentDragFrame == nil then
+                    currentDragFrame = dragFrame
+                    dragging = true
+                    dragStart = input.Position
+                    startPos = mainFrame.Position
+                    
+                    if ondrag and type(ondrag) == "function" then 
+                        ondrag(true, currentDragFrame)
+                    end
+                    
+                    input.Changed:Connect(function()
+                        if input.UserInputState == Enum.UserInputState.End then
+                            dragging = false
+                            currentDragFrame = nil
+                            
+                            if ondrag and type(ondrag) == "function" then 
+                                ondrag(false, nil)
+                            end
+                        end
+                    end)
+                end
             end
-        else
-            Creator.Tween(mainFrame, 0.02, {Position = position}):Play()
+        end)
+        
+        dragFrame.InputChanged:Connect(function(input)
+            if dragging and currentDragFrame == dragFrame then
+                if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+                    update(input)
+                end
+            end
+        end)
+    end
+    
+    UserInputService.InputChanged:Connect(function(input)
+        if dragging and currentDragFrame ~= nil then
+            if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+                update(input)
+            end
         end
     end)
-    Creator.AddSignal(UserInputService.WindowFocusReleased, function()
-        finish(false)
-    end)
-
+    
     function DragModule:Set(v)
-        self.CanDraggable = v
-        if not v then finish(false) end
+        DragModule.CanDraggable = v
     end
-
+    
     return DragModule
 end
 
@@ -36991,51 +36971,12 @@ New("Frame", {
         return Button
     end
 
-    local dragPreview = New("Frame", {
-        Name = "DragPreview",
-        Parent = Window.UIElements.Main.Parent,
-        Visible = false,
-        ThemeTag = {BackgroundColor3 = "Background"},
-        BackgroundTransparency = 0.30,
-        BorderSizePixel = 0,
-        ZIndex = Window.UIElements.Main.ZIndex + 1,
-    }, {
-        New("UICorner", {CornerRadius = UDim.new(0, Window.UICorner)}),
-        New("UIStroke", {
-            ThemeTag = {Color = "Outline"},
-            Thickness = 1,
-            Transparency = 0.25,
-        }),
-    })
-
-    for _, corner in ipairs({
-        Vector2.new(0, 0), Vector2.new(1, 0),
-        Vector2.new(0, 1), Vector2.new(1, 1),
-    }) do
-        local inset = math.max(8, math.ceil(Window.UICorner * 0.65))
-        local bracket = New("Frame", {
-            AnchorPoint = corner,
-            Position = UDim2.new(corner.X, inset * (1 - 2 * corner.X), corner.Y, inset * (1 - 2 * corner.Y)),
-            Size = UDim2.fromOffset(14, 14),
-            BackgroundTransparency = 1,
-            Parent = dragPreview,
-        })
-        for _, size in ipairs({UDim2.fromOffset(14, 2), UDim2.fromOffset(2, 14)}) do
-            New("Frame", {
-                AnchorPoint = corner,
-                Position = UDim2.fromScale(corner.X, corner.Y),
-                Size = size,
-                BorderSizePixel = 0,
-                ThemeTag = {BackgroundColor3 = "Toggle"},
-                Parent = bracket,
-            })
-        end
-    end
+    
 
     local WindowDragModule = Creator.Drag(
-        Window.UIElements.Main,
-        {Window.UIElements.Main.Main.Topbar, BottomDragFrame.Frame},
-        function(dragging, frame)
+        Window.UIElements.Main, 
+        {Window.UIElements.Main.Main.Topbar, BottomDragFrame.Frame}, 
+        function(dragging, frame) 
             if not Window.Closed then
                 if dragging and frame == BottomDragFrame.Frame then
                     Tween(BottomDragFrame, .1, {ImageTransparency = .35}):Play()
@@ -37043,13 +36984,11 @@ New("Frame", {
                     Tween(BottomDragFrame, .2, {ImageTransparency = .8}):Play()
                 end
                 Window.Position = Window.UIElements.Main.Position
+                Window.Dragging = dragging
             end
-            Window.Dragging = dragging
-        end,
-        dragPreview,
-        Config.WindUI.ScreenGui.UIScale
+        end
     )
-
+    
     if not IsVideoBG and Window.Background and typeof(Window.Background) == "table" then
         
         local BackgroundGradient = New("UIGradient")

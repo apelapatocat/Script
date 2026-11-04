@@ -25186,75 +25186,199 @@ end
 
 
 
-function Creator.Drag(mainFrame, dragFrames, ondrag)
-    local currentDragFrame = nil
-    local dragging, dragStart, startPos
-    local DragModule = {
-        CanDraggable = true
+function Creator.AddDragPreviewEdges(preview)
+    New("Frame", {
+        Name = "InsetOutline",
+        Position = UDim2.fromOffset(5, 5),
+        Size = UDim2.new(1, -10, 1, -10),
+        BackgroundTransparency = 1,
+        ZIndex = preview.ZIndex + 1,
+        Parent = preview,
+    }, {
+        New("UICorner", {CornerRadius = UDim.new(0, 8)}),
+        New("UIStroke", {Transparency = 0.64, ThemeTag = {Color = "Outline"}}),
+    })
+
+    local accents = {
+        {UDim2.fromScale(0.5, 0), UDim2.fromOffset(28, 3)},
+        {UDim2.fromScale(0.5, 1), UDim2.fromOffset(28, 3)},
+        {UDim2.fromScale(0, 0.5), UDim2.fromOffset(3, 14)},
+        {UDim2.fromScale(1, 0.5), UDim2.fromOffset(3, 14)},
     }
-    
-    if not dragFrames or type(dragFrames) ~= "table" then
+    for _, accent in ipairs(accents) do
+        New("Frame", {
+            Name = "EdgeAccent",
+            AnchorPoint = Vector2.new(0.5, 0.5),
+            Position = accent[1],
+            Size = accent[2],
+            BackgroundTransparency = 0.16,
+            ZIndex = preview.ZIndex + 1,
+            ThemeTag = {BackgroundColor3 = "Text"},
+            Parent = preview,
+        }, {
+            New("UICorner", {CornerRadius = UDim.new(1, 0)}),
+        })
+    end
+end
+
+function Creator.KeepInViewport(frame, screen, canRecover, onRecover)
+    local guiService = game:GetService("GuiService")
+    local queued = false
+    local preferredPosition, appliedPosition
+
+    local function recover(requestedPosition)
+        if not frame.Parent or not canRecover() then return end
+        local insetStart, insetEnd = guiService:GetGuiInset()
+        local safeSize = screen.AbsoluteSize - insetStart - insetEnd
+        if safeSize.X <= 0 or safeSize.Y <= 0 then return end
+
+        local origin = screen.AbsolutePosition + insetStart
+        local current = frame.Position
+        if requestedPosition or current ~= appliedPosition then
+            preferredPosition = requestedPosition or current
+        end
+        local scale = math.max(0.01, screen.UIScale.Scale)
+        local requestedOffset = Vector2.new(
+            preferredPosition.X.Offset - current.X.Offset,
+            preferredPosition.Y.Offset - current.Y.Offset
+        )
+        local position = frame.AbsolutePosition - origin + requestedOffset * scale
+        local size = frame.AbsoluteSize
+        local corrected = Vector2.new(
+            math.clamp(position.X, 0, math.max(0, safeSize.X - size.X)),
+            math.clamp(position.Y, 0, math.max(0, safeSize.Y - size.Y))
+        )
+        local delta = (corrected - position) / scale
+        appliedPosition = preferredPosition + UDim2.fromOffset(delta.X, delta.Y)
+        if current == appliedPosition then return end
+        frame.Position = appliedPosition
+        if onRecover then onRecover(appliedPosition) end
+    end
+
+    local connection = screen:GetPropertyChangedSignal("AbsoluteSize"):Connect(function()
+        if queued then return end
+        queued = true
+        task.defer(function()
+            queued = false
+            recover()
+        end)
+    end)
+    frame.Destroying:Connect(function()
+        connection:Disconnect()
+    end)
+    return recover
+end
+
+function Creator.Drag(mainFrame, dragFrames, ondrag, preview, uiScale, constrainDelta, canStart)
+    local dragInput, dragStart, startPos, activeHandle, endConnection
+    local previewTarget, previewConnection, pointerPosition
+    local handleConnections = {}
+    local DragModule = { CanDraggable = true }
+
+    if type(dragFrames) ~= "table" then
         dragFrames = {mainFrame}
     end
-    
-    local function update(input)
-        if not dragging or not DragModule.CanDraggable then return end
-        
-        local delta = input.Position - dragStart
-        Creator.Tween(mainFrame, 0.02, {Position = UDim2.new(
+
+    local function finish(commit)
+        if not dragInput then return end
+        dragInput = nil
+        endConnection:Disconnect()
+        endConnection = nil
+
+        local dropPosition
+        if previewConnection then
+            previewConnection:Disconnect()
+            previewConnection = nil
+            if commit then
+                mainFrame.Position = previewTarget
+                dropPosition = pointerPosition
+            end
+            preview.Visible = false
+            previewTarget = nil
+        end
+        if ondrag then ondrag(false, nil, dropPosition) end
+    end
+
+    for _, dragFrame in ipairs(dragFrames) do
+        local connection = dragFrame.InputBegan:Connect(function(input)
+            local kind = input.UserInputType
+            if dragInput or not DragModule.CanDraggable then return end
+            if kind ~= Enum.UserInputType.MouseButton1 and kind ~= Enum.UserInputType.Touch then return end
+            if canStart and not canStart(dragFrame, input.Position) then return end
+
+            dragInput = input
+            activeHandle = dragFrame
+            dragStart = input.Position
+            if ondrag then ondrag(true, dragFrame) end
+            startPos = mainFrame.Position
+            if preview then
+                preview.AnchorPoint = mainFrame.AnchorPoint
+                preview.Size = mainFrame.Size
+                preview.Position = startPos
+            end
+
+            endConnection = input:GetPropertyChangedSignal("UserInputState"):Connect(function()
+                local state = input.UserInputState
+                if state == Enum.UserInputState.End or state == Enum.UserInputState.Cancel then
+                    finish(state == Enum.UserInputState.End)
+                end
+            end)
+        end)
+        table.insert(handleConnections, connection)
+    end
+
+    local changedConnection = Creator.AddSignal(UserInputService.InputChanged, function(input)
+        if not dragInput or not DragModule.CanDraggable then return end
+        if dragInput.UserInputType == Enum.UserInputType.Touch then
+            if input ~= dragInput then return end
+        elseif input.UserInputType ~= Enum.UserInputType.MouseMovement then
+            return
+        end
+
+        local scale = uiScale and math.max(uiScale.Scale, 0.01) or 1
+        pointerPosition = Vector2.new(input.Position.X, input.Position.Y)
+        local pointerDelta = input.Position - dragStart
+        local delta = Vector2.new(pointerDelta.X, pointerDelta.Y)
+        if constrainDelta then
+            delta = constrainDelta(delta, activeHandle, scale)
+        end
+        delta = delta / scale
+        local position = UDim2.new(
             startPos.X.Scale, startPos.X.Offset + delta.X,
             startPos.Y.Scale, startPos.Y.Offset + delta.Y
-        )}):Play()
-    end
-    
-    for _, dragFrame in pairs(dragFrames) do
-        dragFrame.InputBegan:Connect(function(input)
-            if (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) and DragModule.CanDraggable then
-                if currentDragFrame == nil then
-                    currentDragFrame = dragFrame
-                    dragging = true
-                    dragStart = input.Position
-                    startPos = mainFrame.Position
-                    
-                    if ondrag and type(ondrag) == "function" then 
-                        ondrag(true, currentDragFrame)
-                    end
-                    
-                    input.Changed:Connect(function()
-                        if input.UserInputState == Enum.UserInputState.End then
-                            dragging = false
-                            currentDragFrame = nil
-                            
-                            if ondrag and type(ondrag) == "function" then 
-                                ondrag(false, nil)
-                            end
-                        end
-                    end)
-                end
+        )
+        if preview then
+            if not previewConnection and position == startPos then return end
+            previewTarget = position
+            if not previewConnection then
+                preview.Visible = true
+                previewConnection = RunService.PreRender:Connect(function(dt)
+                    local alpha = 1 - math.exp(-36 * dt)
+                    preview.Position = preview.Position:Lerp(previewTarget, alpha)
+                end)
             end
-        end)
-        
-        dragFrame.InputChanged:Connect(function(input)
-            if dragging and currentDragFrame == dragFrame then
-                if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
-                    update(input)
-                end
-            end
-        end)
-    end
-    
-    UserInputService.InputChanged:Connect(function(input)
-        if dragging and currentDragFrame ~= nil then
-            if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
-                update(input)
-            end
+        else
+            Creator.Tween(mainFrame, 0.02, {Position = position}):Play()
         end
     end)
-    
+    local focusConnection = Creator.AddSignal(UserInputService.WindowFocusReleased, function()
+        finish(false)
+    end)
+
     function DragModule:Set(v)
-        DragModule.CanDraggable = v
+        self.CanDraggable = v
+        if not v then finish(false) end
     end
-    
+
+    function DragModule:Destroy()
+        self:Set(false)
+        changedConnection:Disconnect()
+        focusConnection:Disconnect()
+        for _, connection in ipairs(handleConnections) do
+            connection:Disconnect()
+        end
+    end
+
     return DragModule
 end
 
@@ -28504,6 +28628,22 @@ return function(WindUI)
         },
     }
     for _, theme in ipairs(Presets) do themes[theme.Name] = theme end
+    for name, theme in pairs(themes) do
+        if name ~= "h4xscripts" and theme ~= H4xThemes.Midnight and theme ~= H4xThemes.Violet then
+            local background = theme.Background
+            local foreground = theme.Text
+            if type(background) == "string" then background = Color3.fromHex(background) end
+            if type(foreground) == "string" then foreground = Color3.fromHex(foreground) end
+            if typeof(background) == "Color3" and typeof(foreground) == "Color3" then
+                theme.HeaderBackground = background:Lerp(foreground, 0.10)
+                theme.ShortcutBackground = background:Lerp(foreground, 0.07)
+                theme.ShortcutHover = background:Lerp(foreground, 0.15)
+                theme.HeaderDesc = foreground:Lerp(background, 0.23)
+                theme.ShortcutDesc = theme.HeaderDesc
+                theme.HeaderTag = foreground:Lerp(background, 0.15)
+            end
+        end
+    end
     return themes
 end
 end function __DARKLUA_BUNDLE_MODULES.K()
@@ -30157,6 +30297,7 @@ end
 
 
 return function(Config)
+    local compact = Config.Parent:GetAttribute("CompactSection") == true
     local Element = {
         Title = Config.Title,
         Desc = Config.Desc or nil,
@@ -30170,7 +30311,7 @@ return function(Config)
         Scalable = Config.Scalable,
         Parent = Config.Parent,
         Justify = Config.Justify or "Between", 
-        UIPadding = Config.Window.ElementConfig.UIPadding,
+        UIPadding = compact and 7 or Config.Window.ElementConfig.UIPadding,
         UICorner = Config.Window.ElementConfig.UICorner,
         UIElements = {},
         
@@ -30414,6 +30555,7 @@ return function(Config)
                     and Element.Color
             ) or nil
     }, {
+        compact and New("UISizeConstraint", {MinSize = Vector2.new(0, 36)}) or nil,
         Element.UIElements.Container,
         ElementFullFrame,
         New("UIPadding", {
@@ -30437,11 +30579,12 @@ return function(Config)
         hoverTween:Play()
     end
     if Element.Hover then
-        Creator.AddSignal(Main.MouseEnter, function()
+        local target = Config.InputTarget or Main
+        Creator.AddSignal(target.MouseEnter, function()
             Hovering = true
             updateHover()
         end)
-        Creator.AddSignal(Main.MouseLeave, function()
+        Creator.AddSignal(target.MouseLeave, function()
             Hovering = false
             updateHover()
         end)
@@ -30703,9 +30846,9 @@ return function(Config)
     end
     
 
-    function Element.UpdateShape(Tab)
+    function Element.UpdateShape(siblings)
         if Config.Window.NewElements then
-            local newShape = getElementPosition(Tab.Elements, Element.Index)
+            local newShape = getElementPosition(siblings, Element.Index)
             if newShape and Main then
                 MainTable:SetType(newShape)
                 LockedTable:SetType(newShape)
@@ -30791,11 +30934,28 @@ function Element:New(Config)
     }
     
     local CanCallback = true
+    local slot = New("Frame", {
+        Name = "ButtonSlot",
+        Size = UDim2.new(1, 0, 0, 36),
+        BackgroundTransparency = 1,
+        Parent = Config.Parent,
+    })
+    slot:SetAttribute("CompactSection", Config.Parent:GetAttribute("CompactSection"))
+    local inputTarget = New("TextButton", {
+        Name = "PressTarget",
+        Size = UDim2.fromScale(1, 1),
+        BackgroundTransparency = 1,
+        AutoButtonColor = false,
+        Text = "",
+        ZIndex = 2,
+        Parent = slot,
+    })
     
     Button.ButtonFrame = __DARKLUA_BUNDLE_MODULES.load('S')({
         Title = Button.Title,
         Desc = Button.Desc,
-        Parent = Config.Parent,
+        Parent = slot,
+        InputTarget = inputTarget,
         
         
         
@@ -30842,10 +31002,61 @@ function Element:New(Config)
     
     Button.ButtonFrame:Colorize(Button.UIElements.ButtonIcon.ImageLabel, "ImageColor3")
     
+    local buttonGui = Button.ButtonFrame.UIElements.Main
+    Button.ButtonFrame.LayoutFrame = slot
+    function Button.ButtonFrame:Destroy()
+        slot:Destroy()
+    end
+    buttonGui.AnchorPoint = Vector2.new(0.5, 0.5)
+    buttonGui.Position = UDim2.fromScale(0.5, 0.5)
+    local pressScale = New("UIScale", {Name = "PressScale", Parent = buttonGui})
+    local pressConnection, pressTween
+    local uiScale = Config.WindUI.ScreenGui.UIScale
+
+    local function syncHeight()
+        local height = buttonGui.AbsoluteSize.Y / math.max(0.01, uiScale.Scale * pressScale.Scale)
+        if height > 0 then slot.Size = UDim2.new(1, 0, 0, math.floor(height + 0.5)) end
+    end
+    buttonGui:GetPropertyChangedSignal("AbsoluteSize"):Connect(syncHeight)
+    syncHeight()
+
+    local function animatePress(scale, duration)
+        if pressTween then pressTween:Cancel() end
+        pressTween = Creator.Tween(pressScale, duration, {Scale = scale}, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+        pressTween:Play()
+    end
+
+    local function releasePress()
+        if not pressConnection then return end
+        pressConnection:Disconnect()
+        pressConnection = nil
+        animatePress(1, 0.12)
+    end
+
+    inputTarget.InputBegan:Connect(function(input)
+        local kind = input.UserInputType
+        if not CanCallback or pressConnection then return end
+        if kind ~= Enum.UserInputType.MouseButton1 and kind ~= Enum.UserInputType.Touch then return end
+
+        pressConnection = input:GetPropertyChangedSignal("UserInputState"):Connect(function()
+            local state = input.UserInputState
+            if state == Enum.UserInputState.End or state == Enum.UserInputState.Cancel then
+                releasePress()
+            end
+        end)
+        animatePress(0.95, 0.06)
+    end)
+    inputTarget.MouseLeave:Connect(releasePress)
+    buttonGui.Destroying:Connect(function()
+        if pressConnection then pressConnection:Disconnect() end
+        if pressTween then pressTween:Cancel() end
+    end)
+
     function Button:Lock(message)
         local lockText = type(message) == "string" and message or (type(Button.Locked) == "string" and Button.Locked or nil)
         Button.Locked = true
         CanCallback = false
+        releasePress()
         return Button.ButtonFrame:Lock(lockText)
     end
     function Button:Unlock()
@@ -30858,7 +31069,7 @@ function Element:New(Config)
         Button:Lock()
     end
 
-    Creator.AddSignal(Button.ButtonFrame.UIElements.Main.MouseButton1Click, function()
+    Creator.AddSignal(inputTarget.Activated, function()
         if CanCallback then
             task.spawn(function()
                 Creator.SafeCallback(Button.Callback)
@@ -31204,7 +31415,7 @@ function Element:New(Config)
         UIElements = {},
         IsFocusing = false,
         
-        Width = 130,
+        Width = Config.Parent:GetAttribute("CompactSection") and 92 or 130,
         TextBoxWidth = 30,
         ThumbSize = 13,
     }
@@ -31212,7 +31423,7 @@ function Element:New(Config)
     local releaseconnection
     local dragging = false
     local disposed = false
-    local previousScroll
+    local scrollingParent, previousScroll
     local Value = Slider.Value.Default or Slider.Value.Min or 0
     
     Slider.Value.Min = Slider.Value.Min or 0
@@ -31327,8 +31538,6 @@ function Element:New(Config)
         Slider:Lock()
     end
     
-    local ScrollingFrameParent = Slider.SliderFrame.Parent:IsA("ScrollingFrame") and Slider.SliderFrame.Parent or Slider.SliderFrame.Parent.Parent.Parent
-    
     local function update(value, callback)
         if disposed or not Slider.SliderFrame.UIElements.Main.Parent then return end
         value = tonumber(value)
@@ -31356,7 +31565,10 @@ function Element:New(Config)
         disconnect(moveconnection)
         disconnect(releaseconnection)
         moveconnection, releaseconnection = nil, nil
-        if ScrollingFrameParent.Parent then ScrollingFrameParent.ScrollingEnabled = previousScroll end
+        if scrollingParent and scrollingParent.Parent then
+            scrollingParent.ScrollingEnabled = previousScroll
+        end
+        scrollingParent, previousScroll = nil, nil
         if commit and not disposed and Config.UpdateOnRelease then Creator.SafeCallback(Slider.Callback, FormatValue(LastValue)) end
         if not disposed then
             Tween(Slider.UIElements.SliderIcon.Frame.Thumb, .12, { Size = UDim2.fromOffset(Slider.ThumbSize, Slider.ThumbSize) }):Play()
@@ -31371,9 +31583,12 @@ function Element:New(Config)
         local origin = Slider.UIElements.SliderIcon.AbsolutePosition.X
         local width = Slider.UIElements.SliderIcon.AbsoluteSize.X
         if width <= 0 then return end
+        scrollingParent = Slider.UIElements.SliderContainer:FindFirstAncestorWhichIsA("ScrollingFrame")
+        if scrollingParent then
+            previousScroll = scrollingParent.ScrollingEnabled
+            scrollingParent.ScrollingEnabled = false
+        end
         dragging, HoldingSlider = true, true
-        previousScroll = ScrollingFrameParent.ScrollingEnabled
-        ScrollingFrameParent.ScrollingEnabled = false
         local function move()
             local x = touch and input.Position.X or game:GetService("UserInputService"):GetMouseLocation().X
             local delta = math.clamp((x - origin) / width, 0, 1)
@@ -31693,8 +31908,44 @@ local Tween = Creator.Tween
 
 function DropdownMenu.New(Config, Dropdown, Element, CanCallback, Type)
     local DropdownModule = {}
-    
-    
+    local optionLocks = {}
+    if type(Config.LockOption) == "table" then
+        for _, title in ipairs(Config.LockOption) do
+            optionLocks[title] = true
+        end
+    elseif Config.LockOption ~= nil then
+        optionLocks[Config.LockOption] = true
+    end
+    local lockIcon = Creator.Icon("lock")
+
+    local function updateOptionLock(option)
+        local locked = optionLocks[option.Name]
+        if locked == nil then
+            locked = type(option.Original) == "table" and option.Original.Locked == true
+        end
+        option.Locked = locked
+        option.UIElements.LockIcon.Visible = locked
+        local label = option.UIElements.TabItem.Frame.TextLabel
+        label.TextTransparency = locked and 0.65 or (option.Selected and 0 or 0.4)
+        local iconSpace = option.UIElements.TabIcon and Element.TabPadding + Element.TabIcon or 0
+        local lockSpace = locked and Element.TabPadding + 14 or 0
+        label.Size = UDim2.new(1, -iconSpace - lockSpace, 0, 0)
+    end
+
+    function DropdownModule:SetLockOption(titles, locked)
+        if type(titles) ~= "table" then
+            titles = {titles}
+        end
+        for _, title in ipairs(titles) do
+            optionLocks[title] = locked ~= false
+        end
+        for _, option in pairs(Dropdown.Tabs) do
+            if optionLocks[option.Name] ~= nil then
+                updateOptionLock(option)
+            end
+        end
+    end
+
     Dropdown.UIElements.UIListLayout = New("UIListLayout", {
         Padding = UDim.new(0,Element.MenuPadding),
         FillDirection = "Vertical"
@@ -31989,7 +32240,7 @@ function DropdownMenu.New(Config, Dropdown, Element, CanCallback, Type)
                         TextTransparency = .4,
                         LayoutOrder = 999,
                         AutomaticSize = "Y",
-                        
+                        TextTruncate = "AtEnd",
                         Size = UDim2.new(1,TabIcon and -Element.TabPadding-Element.TabIcon or 0,0,0),
                         AnchorPoint = Vector2.new(0,0.5),
                         Position = UDim2.new(0,0,0.5,0), 
@@ -32016,6 +32267,20 @@ function DropdownMenu.New(Config, Dropdown, Element, CanCallback, Type)
                 end
             end
             
+            TabMain.UIElements.LockIcon = New("ImageLabel", {
+                Name = "LockIcon",
+                Parent = TabMain.UIElements.TabItem,
+                Image = lockIcon[1],
+                ImageRectOffset = lockIcon[2].ImageRectPosition,
+                ImageRectSize = lockIcon[2].ImageRectSize,
+                BackgroundTransparency = 1,
+                ImageTransparency = 0.25,
+                AnchorPoint = Vector2.new(1, 0.5),
+                Position = UDim2.new(1, -Element.TabPadding, 0.5, 0),
+                Size = UDim2.fromOffset(14, 14),
+                ThemeTag = {ImageColor3 = "Icon"},
+            })
+            updateOptionLock(TabMain)
             Dropdown.Tabs[Index] = TabMain
             
             DropdownModule:Display()
@@ -32023,7 +32288,7 @@ function DropdownMenu.New(Config, Dropdown, Element, CanCallback, Type)
             
             
             Creator.AddSignal(TabMain.UIElements.TabItem.MouseButton1Click, function()
-                if Type == "Dropdown" then
+                if Type == "Dropdown" and not TabMain.Locked then
                     if Dropdown.Multi then
                         if not TabMain.Selected then
                             TabMain.Selected = true
@@ -32061,7 +32326,9 @@ function DropdownMenu.New(Config, Dropdown, Element, CanCallback, Type)
                             Tween(TabPisun.UIElements.TabItem, 0.1, {ImageTransparency = 1}):Play()
                             Tween(TabPisun.UIElements.TabItem.Highlight, 0.1, {ImageTransparency = 1}):Play()
                             
-                            Tween(TabPisun.UIElements.TabItem.Frame.TextLabel, 0.1, {TextTransparency = .4}):Play()
+                            Tween(TabPisun.UIElements.TabItem.Frame.TextLabel, 0.1, {
+                                TextTransparency = TabPisun.Locked and 0.65 or 0.4,
+                            }):Play()
                             if TabPisun.UIElements.TabIcon then
                                 Tween(TabPisun.UIElements.TabIcon.ImageLabel, 0.1, {ImageTransparency = .2}):Play()
                             end
@@ -32206,7 +32473,7 @@ function DropdownMenu.New(Config, Dropdown, Element, CanCallback, Type)
                 Mouse.Y >= AbsPos.Y and 
                 Mouse.Y <= AbsPos.Y + AbsSize.Y
             
-            if Config.Window.CanDropdown and Dropdown.Opened and not isClickOnDropdown and not isClickOnMenu then
+            if Dropdown.Opened and not isClickOnDropdown and not isClickOnMenu then
                 DropdownModule:Close()
             end
         end
@@ -32246,6 +32513,7 @@ local Element = {
 }
 
 function Element:New(Config)
+    local compact = Config.Parent:GetAttribute("CompactSection") == true
     local Dropdown = {
         __type = "Dropdown",
         Title = Config.Title or "Dropdown",
@@ -32264,7 +32532,7 @@ function Element:New(Config)
         Opened = false,
         Tabs = {},
         
-        Width = 150,
+        Width = compact and 104 or 150,
     }
     
     if Dropdown.Multi and not Dropdown.Value then
@@ -32288,12 +32556,15 @@ function Element:New(Config)
     
     Dropdown.UIElements.Dropdown = CreateLabel("", nil, Dropdown.DropdownFrame.UIElements.Main, nil, Config.Window.NewElements and 12 or 10)
     
+    local inset = compact and 7 or 12
+    local iconSize = compact and 14 or 18
+    local alignY = Config.Window.NewElements and not compact and 0 or 0.5
     Dropdown.UIElements.Dropdown.Frame.Frame.TextLabel.TextTruncate = "AtEnd"
-    Dropdown.UIElements.Dropdown.Frame.Frame.TextLabel.Size = UDim2.new(1, Dropdown.UIElements.Dropdown.Frame.Frame.TextLabel.Size.X.Offset - 18 - 12 - 12,0,0)
+    Dropdown.UIElements.Dropdown.Frame.Frame.TextLabel.Size = UDim2.new(1, Dropdown.UIElements.Dropdown.Frame.Frame.TextLabel.Size.X.Offset - iconSize - 2 * inset,0,0)
     
-    Dropdown.UIElements.Dropdown.Size = UDim2.new(0,Dropdown.Width,0,36)
-    Dropdown.UIElements.Dropdown.Position = UDim2.new(1,0,Config.Window.NewElements and 0 or 0.5,0)
-    Dropdown.UIElements.Dropdown.AnchorPoint = Vector2.new(1,Config.Window.NewElements and 0 or 0.5)
+    Dropdown.UIElements.Dropdown.Size = UDim2.new(0,Dropdown.Width,0,compact and 30 or 36)
+    Dropdown.UIElements.Dropdown.Position = UDim2.new(1,0,alignY,0)
+    Dropdown.UIElements.Dropdown.AnchorPoint = Vector2.new(1,alignY)
     
     
     
@@ -32304,8 +32575,8 @@ function Element:New(Config)
         Image = Creator.Icon("chevrons-up-down")[1],
         ImageRectOffset = Creator.Icon("chevrons-up-down")[2].ImageRectPosition,
         ImageRectSize = Creator.Icon("chevrons-up-down")[2].ImageRectSize,
-        Size = UDim2.new(0,18,0,18),
-        Position = UDim2.new(1,-12,0.5,0),
+        Size = UDim2.fromOffset(iconSize, iconSize),
+        Position = UDim2.new(1,-inset,0.5,0),
         ThemeTag = {
             ImageColor3 = "Icon"
         },
@@ -32319,6 +32590,7 @@ function Element:New(Config)
     Dropdown.Display = Dropdown.DropdownMenu.Display
     Dropdown.Refresh = Dropdown.DropdownMenu.Refresh
     Dropdown.Select = Dropdown.DropdownMenu.Select
+    Dropdown.SetLockOption = Dropdown.DropdownMenu.SetLockOption
     Dropdown.Open = Dropdown.DropdownMenu.Open
     Dropdown.Close = Dropdown.DropdownMenu.Close
     
@@ -33514,21 +33786,129 @@ local Tween = Creator.Tween
 
 local Element = {}
 
+local function getNewBoxParent(config)
+    local owner = config.ParentTable
+    local group = owner._NewBoxGroup
+    if not group or not group.Frame.Parent then
+        local gap = 10
+        local layout = New("UIListLayout", {
+            FillDirection = Enum.FillDirection.Horizontal,
+            SortOrder = Enum.SortOrder.LayoutOrder,
+            Padding = UDim.new(0, gap),
+        })
+        local frame = New("Frame", {
+            Name = "SectionColumns",
+            Size = UDim2.fromScale(1, 0),
+            AutomaticSize = Enum.AutomaticSize.Y,
+            BackgroundTransparency = 1,
+            Parent = config.Parent,
+        }, {layout})
+        group = {Frame = frame, Columns = {}, Cards = {}, Count = 0, NextColumn = 1}
+        owner._NewBoxGroup = group
+
+        for index = 1, 2 do
+            group.Columns[index] = New("Frame", {
+                Name = "Column" .. index,
+                LayoutOrder = index,
+                AutomaticSize = Enum.AutomaticSize.Y,
+                BackgroundTransparency = 1,
+                Visible = false,
+                Parent = frame,
+            }, {
+                New("UIListLayout", {
+                    SortOrder = Enum.SortOrder.LayoutOrder,
+                    Padding = UDim.new(0, gap),
+                }),
+            })
+        end
+
+        local uiScale = config.WindUI.ScreenGui.UIScale
+        function group.Refresh()
+            local left, right = group.Columns[1], group.Columns[2]
+            local cards = {}
+            local preferredCounts = {[left] = 0, [right] = 0}
+            for card, preferred in pairs(group.Cards) do
+                if card.Parent == left or card.Parent == right then
+                    table.insert(cards, card)
+                    preferredCounts[preferred] += 1
+                end
+            end
+
+            local balance = #cards > 1 and (preferredCounts[left] == 0 or preferredCounts[right] == 0)
+            if balance then
+                table.sort(cards, function(a, b)
+                    return a.LayoutOrder < b.LayoutOrder
+                end)
+            end
+
+            local counts = {[left] = 0, [right] = 0}
+            for index, card in ipairs(cards) do
+                local column = group.Cards[card]
+                if balance then
+                    column = index <= math.ceil(#cards / 2) and left or right
+                end
+                if card.Parent ~= column then card.Parent = column end
+                counts[column] += 1
+            end
+
+            local stacked = frame.AbsoluteSize.X < 410 * uiScale.Scale
+            layout.FillDirection = stacked and Enum.FillDirection.Vertical or Enum.FillDirection.Horizontal
+            local bothVisible = counts[left] > 0 and counts[right] > 0
+            local width = (stacked or not bothVisible) and UDim2.fromScale(1, 0) or UDim2.new(0.5, -gap / 2, 0, 0)
+            for _, column in ipairs(group.Columns) do
+                column.Size = width
+                column.Visible = counts[column] > 0
+            end
+            frame.Visible = #cards > 0
+        end
+        frame:GetPropertyChangedSignal("AbsoluteSize"):Connect(group.Refresh)
+        local scaleConnection = uiScale:GetPropertyChangedSignal("Scale"):Connect(group.Refresh)
+        frame.Destroying:Connect(function()
+            scaleConnection:Disconnect()
+        end)
+        group.Refresh()
+    end
+
+    local columnIndex = config.Column
+    if columnIndex ~= 1 and columnIndex ~= 2 then
+        columnIndex = group.NextColumn
+        group.NextColumn = 3 - columnIndex
+    end
+    local column = group.Columns[columnIndex]
+    column.Visible = true
+    group.Count += 1
+    return column, group
+end
+
 function Element:New(Config)
+    local canFloat = Config.ParentTable ~= nil and Config.WindUI ~= nil
+    local newBox = Config.NewBox == true and canFloat
+    local parent, group, dockSlot = Config.Parent, nil, nil
+    if newBox then
+        parent, group = getNewBoxParent(Config)
+    elseif canFloat then
+        dockSlot = New("Frame", {
+            Name = "SectionDock",
+            Size = UDim2.new(1, 0, 0, 42),
+            BackgroundTransparency = 1,
+            Parent = parent,
+        })
+        parent = dockSlot
+    end
     local Section = {
         __type = "Section",
         Title = Config.Title or "Section",
         Icon = Config.Icon,
         TextXAlignment = Config.TextXAlignment or "Left",
-        TextSize = Config.TextSize or 19,
-        Box = Config.Box or false,
+        TextSize = Config.TextSize or (newBox and 15 or 19),
+        Box = newBox or Config.Box or false,
         FontWeight = Config.FontWeight or Enum.FontWeight.SemiBold,
         TextTransparency = Config.TextTransparency or 0.05,
         Opened = Config.Opened or false,
         UIElements = {},
         
-        HeaderSize = 42,
-        IconSize = 20,
+        HeaderSize = newBox and (Creator.MobileMode and 46 or 38) or 42,
+        IconSize = newBox and 16 or 20,
         Padding = 10,
         
         Elements = {},
@@ -33539,7 +33919,7 @@ function Element:New(Config)
     local destroyed, layoutQueued, layoutConnection, sizeTween = false, false, nil, nil
     local setOpened = SectionState.Bind(Config.Window, Section, Config,
         Config.ParentTable and Config.ParentTable._SectionStateKey, "content")
-    local Icon
+    local Icon, popoutGrip, floatingHost
 
     
     function Section:SetIcon(i)
@@ -33558,13 +33938,15 @@ function Element:New(Config)
         end
     end
     
-    local ChevronIconFrame = New("Frame", {
-        Size = UDim2.new(0,Section.IconSize,0,Section.IconSize),
+    local ChevronIconFrame = New(canFloat and "ImageButton" or "Frame", {
+        Size = UDim2.fromOffset(Section.IconSize + (newBox and Creator.MobileMode and 12 or 0), Section.IconSize + (newBox and Creator.MobileMode and 12 or 0)),
         BackgroundTransparency = 1,
         Visible = false
     }, {
         New("ImageLabel", {
-            Size = UDim2.new(1,0,1,0),
+            Size = UDim2.fromOffset(Section.IconSize, Section.IconSize),
+            AnchorPoint = Vector2.new(0.5, 0.5),
+            Position = UDim2.fromScale(0.5, 0.5),
             BackgroundTransparency = 1,
             Image = Creator.Icon("chevron-down")[1],
             ImageRectSize = Creator.Icon("chevron-down")[2].ImageRectSize,
@@ -33609,8 +33991,11 @@ function Element:New(Config)
         if Icon then
             offset = offset - (Section.IconSize + 8)
         end
+        if popoutGrip then
+            offset -= popoutGrip.Size.X.Offset + 8
+        end
         if ChevronIconFrame.Visible then
-            offset = offset - (Section.IconSize + 8)
+            offset -= ChevronIconFrame.Size.X.Offset + 8
         end
         TitleFrame.Size = UDim2.new(1, offset, 0, 0)
     end
@@ -33619,7 +34004,7 @@ function Element:New(Config)
     local Main = Creator.NewRoundFrame(Config.Window.ElementConfig.UICorner, "Squircle", {
         Size = UDim2.new(1,0,0,0),
         BackgroundTransparency = 1,
-        Parent = Config.Parent,
+        Parent = parent,
         ClipsDescendants = true,
         AutomaticSize = "Y",
         ImageTransparency = Section.Box and .93 or 1,
@@ -33659,15 +34044,259 @@ function Element:New(Config)
             Section.Box and New("UIPadding", {
                 PaddingLeft = UDim.new(0,Config.Window.ElementConfig.UIPadding),
                 PaddingRight = UDim.new(0,Config.Window.ElementConfig.UIPadding),
+                PaddingTop = UDim.new(0, newBox and 8 or 0),
                 PaddingBottom = UDim.new(0,Config.Window.ElementConfig.UIPadding),
             }) or nil,
             New("UIListLayout", {
                 FillDirection = "Vertical",
-                Padding = UDim.new(0,Config.Tab.Gap),
+                Padding = UDim.new(0, newBox and 4 or Config.Tab.Gap),
                 VerticalAlignment = "Top",
             }),
         })
     })
+
+    Section.ElementFrame = dockSlot or Main
+    Section.UIElements.Main = Main
+    if group then
+        Main.LayoutOrder = Config.GlobalIndex
+        group.Cards[Main] = parent
+        group.Refresh()
+        Main.Content:SetAttribute("CompactSection", true)
+    end
+
+    if canFloat then
+        local screen = Config.WindUI.ScreenGui
+        local window = Config.Window
+        local scale = screen.UIScale
+        local layer = screen:FindFirstChild("FloatingSections")
+        if not layer then
+            layer = New("Frame", {
+                Name = "FloatingSections",
+                Size = UDim2.fromScale(1, 1),
+                BackgroundTransparency = 1,
+                ZIndex = 20,
+                Parent = screen,
+            })
+        end
+
+        local glyph = Creator.Icon("external-link")
+        popoutGrip = New("ImageButton", {
+            Name = "PopoutGrip",
+            Size = Creator.MobileMode and UDim2.fromOffset(34, 38) or UDim2.fromOffset(24, 26),
+            LayoutOrder = 1,
+            BackgroundTransparency = 1,
+            Parent = Main.Top,
+        }, {
+            New("ImageLabel", {
+                Size = UDim2.fromOffset(14, 14),
+                AnchorPoint = Vector2.new(0.5, 0.5),
+                Position = UDim2.fromScale(0.5, 0.5),
+                BackgroundTransparency = 1,
+                Image = glyph[1],
+                ImageRectOffset = glyph[2].ImageRectPosition,
+                ImageRectSize = glyph[2].ImageRectSize,
+                ThemeTag = {ImageColor3 = "Icon"},
+            }),
+        })
+        ChevronIconFrame.LayoutOrder = 2
+        Main.Top.UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+
+        local host = New("Frame", {
+            Name = "FloatingSection",
+            Visible = false,
+            Parent = layer,
+            ZIndex = 1,
+            ThemeTag = {BackgroundColor3 = "WindowBackground"},
+        }, {
+            New("UICorner", {CornerRadius = UDim.new(0, window.ElementConfig.UICorner)}),
+        })
+        local panelBackground = window.UIElements.MainBar.Background
+        local panelTint = Creator.NewRoundFrame(window.ElementConfig.UICorner, "Squircle", {
+            Size = UDim2.fromScale(1, 1),
+            ImageColor3 = panelBackground.ImageColor3,
+            ImageTransparency = panelBackground.ImageTransparency,
+            Visible = panelBackground.Visible,
+            ZIndex = 0,
+            Parent = host,
+        })
+        local tintConnection = panelBackground.Changed:Connect(function(property)
+            if property == "ImageTransparency" or property == "ImageColor3" or property == "Visible" then
+                panelTint[property] = panelBackground[property]
+            end
+        end)
+        host.Destroying:Connect(function()
+            tintConnection:Disconnect()
+        end)
+        floatingHost = host
+        local lastFloatingPosition
+        local recoverFloating = Creator.KeepInViewport(host, screen, function()
+            return host.Visible and not window.Destroyed
+        end)
+        local preview = New("Frame", {
+            Name = "SectionDragPreview",
+            Visible = false,
+            BackgroundTransparency = 0.65,
+            Parent = layer,
+            ZIndex = 100,
+            ThemeTag = {BackgroundColor3 = "Dialog"},
+        }, {
+            New("UICorner", {CornerRadius = UDim.new(0, window.ElementConfig.UICorner)}),
+            New("UIStroke", {ThemeTag = {Color = "Outline"}, Transparency = 0.25}),
+        })
+
+        Creator.AddDragPreviewEdges(preview)
+
+        local function currentScale()
+            return math.max(0.01, scale.Scale)
+        end
+
+        local function sizeHost()
+            if Main.Parent == host then
+                host.Size = UDim2.fromOffset(host.Size.X.Offset, Main.AbsoluteSize.Y / currentScale())
+            end
+        end
+        local function syncSectionSize()
+            if Main.Parent == host then
+                sizeHost()
+            elseif dockSlot and Main.Parent == dockSlot then
+                
+                local height = Section.Expandable and Main.Size.Y.Offset
+                    or math.max(Section.HeaderSize, Main.AbsoluteSize.Y / currentScale())
+                dockSlot.Size = UDim2.new(1, 0, 0, height)
+            end
+        end
+        Main:GetPropertyChangedSignal("AbsoluteSize"):Connect(syncSectionSize)
+        Main:GetPropertyChangedSignal("Size"):Connect(syncSectionSize)
+        syncSectionSize()
+
+        local function contains(gui, point)
+            local position, size = gui.AbsolutePosition, gui.AbsoluteSize
+            return gui.Visible and point.X >= position.X and point.X <= position.X + size.X
+                and point.Y >= position.Y and point.Y <= position.Y + size.Y
+        end
+
+        local function captureDockedBounds()
+            local position = (Main.AbsolutePosition - screen.AbsolutePosition) / currentScale()
+            local size = Main.AbsoluteSize / currentScale()
+            local width = newBox and size.X or math.min(size.X, 340)
+            host.Position = UDim2.fromOffset(position.X, position.Y)
+            host.Size = UDim2.fromOffset(width, size.Y)
+        end
+
+        local function dock()
+            if Main.Parent ~= host or not parent.Parent then return end
+            if dockSlot then dockSlot.Visible = true end
+            Main.Parent = parent
+            Main.ImageTransparency = Section.Box and .93 or 1
+            host.Visible = false
+            syncSectionSize()
+            if group then group.Refresh() end
+        end
+
+        local function float()
+            for _, sibling in ipairs(layer:GetChildren()) do
+                if sibling.Name == host.Name then sibling.ZIndex = 1 end
+            end
+            host.ZIndex = 2
+            host.Visible = true
+            Main.Parent = host
+            Main.ImageTransparency = .93
+            if dockSlot then dockSlot.Visible = false end
+            if group then group.Refresh() end
+            sizeHost()
+            lastFloatingPosition = host.Position
+        end
+
+        local didDrop = false
+        local drag = Creator.Drag(host, {popoutGrip, Main.Top, Main}, function(dragging, _, dropPosition)
+            if dragging then
+                didDrop = false
+                if Main.Parent ~= host then captureDockedBounds() end
+                return
+            end
+            if not dropPosition or window.Destroyed then return end
+
+            didDrop = true
+            if not window.Closed and contains(window.UIElements.Main, dropPosition) then
+                dock()
+            else
+                float()
+            end
+        end, preview, scale, function(delta, _, dragScale)
+            if delta.Magnitude < 5 then return Vector2.zero end
+            local origin = Vector2.new(host.Position.X.Offset, host.Position.Y.Offset) * dragScale
+            local size = Vector2.new(host.Size.X.Offset, host.Size.Y.Offset) * dragScale
+            local viewport = screen.AbsoluteSize
+            return Vector2.new(
+                math.clamp(delta.X, -origin.X, math.max(0, viewport.X - size.X) - origin.X),
+                math.clamp(delta.Y, -origin.Y, math.max(0, viewport.Y - Section.HeaderSize * dragScale) - origin.Y)
+            )
+        end, function(handle, point)
+            if handle == popoutGrip then return true end
+            if Main.Parent ~= host or contains(ChevronIconFrame, point) or contains(popoutGrip, point) then
+                return false
+            end
+            if Section.Opened then
+                for _, child in ipairs(Main.Content:GetChildren()) do
+                    if child:IsA("GuiObject") and contains(child, point) then return false end
+                end
+            end
+            return true
+        end)
+
+        popoutGrip.Activated:Connect(function(input)
+            local wasDragged = input.UserInputType == Enum.UserInputType.MouseButton1
+                or input.UserInputType == Enum.UserInputType.Touch
+            if window.Destroyed or (wasDragged and (didDrop or preview.Visible)) then return end
+            if Main.Parent == host then
+                dock()
+                return
+            end
+
+            captureDockedBounds()
+            local uiScale = currentScale()
+            local hub = window.UIElements.Main
+            local hubX = (hub.AbsolutePosition.X - screen.AbsolutePosition.X) / uiScale
+            local viewport = screen.AbsoluteSize / uiScale
+            local maxX = math.max(0, viewport.X - host.Size.X.Offset)
+            local right = hubX + hub.AbsoluteSize.X / uiScale + 12
+            local left = hubX - host.Size.X.Offset - 12
+            local x = right <= maxX and right or (left >= 0 and left or host.Position.X.Offset + 24)
+            local y = host.Position.Y.Offset
+            if lastFloatingPosition then
+                x = lastFloatingPosition.X.Offset
+                y = lastFloatingPosition.Y.Offset
+            end
+            local preferred = UDim2.fromOffset(x, y)
+            host.Position = UDim2.fromOffset(
+                math.clamp(x, 0, maxX),
+                math.clamp(y, 0, math.max(0, viewport.Y - host.Size.Y.Offset))
+            )
+            float()
+            lastFloatingPosition = preferred
+            task.defer(recoverFloating, preferred)
+        end)
+
+        Main.Destroying:Connect(function()
+            drag:Destroy()
+            task.defer(function()
+                host:Destroy()
+                preview:Destroy()
+                if dockSlot then dockSlot:Destroy() end
+            end)
+            if not group then return end
+            group.Cards[Main] = nil
+            group.Count -= 1
+            task.defer(function()
+                if not group.Frame.Parent then return end
+                if group.Count == 0 then
+                    group.Frame:Destroy()
+                else
+                    group.Refresh()
+                end
+            end)
+        end)
+    end
 
     
     
@@ -33758,7 +34387,7 @@ function Element:New(Config)
         end
     end
 
-    Creator.AddSignal(Main.Top.MouseButton1Click, function()
+    local function toggleSection()
         if Section.Expandable then
             if Section.Opened then
                 Section:Close()
@@ -33766,8 +34395,16 @@ function Element:New(Config)
                 Section:Open()
             end
         end
-    end)
-    
+    end
+    if floatingHost then
+        Creator.AddSignal(ChevronIconFrame.Activated, toggleSection)
+        Creator.AddSignal(Main.Top.MouseButton1Click, function()
+            if Main.Parent ~= floatingHost then toggleSection() end
+        end)
+    else
+        Creator.AddSignal(Main.Top.MouseButton1Click, toggleSection)
+    end
+
     return Section.__type, Section
 end
 
@@ -33779,10 +34416,10 @@ local Element = {}
 
 function Element:New(Config)
     local Divider = New("Frame", {
-        Size = UDim2.new(1,0,0,1),
+        Size = UDim2.new(1,0,0,2),
         Position = UDim2.new(0.5,0,0.5,0),
         AnchorPoint = Vector2.new(0.5,0.5),
-        BackgroundTransparency = .9,
+        BackgroundTransparency = .78,
         ThemeTag = {
             BackgroundColor3 = "Text"
         }
@@ -34619,6 +35256,9 @@ return {
                 config.UIScale = UIScale
                 config.ElementsModule = ElementsModule
         
+                if name ~= "Section" or config.NewBox ~= true then
+                    tbl._NewBoxGroup = nil
+                end
                 local elementInstance, content = module:New(config)
                 content.ParentTable = tbl
                 content.Tab = config.Tab
@@ -34662,7 +35302,7 @@ return {
                 end
                 
                 if frame then
-                    content.ElementFrame = frame.UIElements.Main
+                    content.ElementFrame = frame.LayoutFrame or frame.UIElements.Main
                     function content:SetTitle(title)
                         content.Title = title
                         frame:SetTitle(title)
@@ -34674,6 +35314,9 @@ return {
                     function content:Highlight()
                         frame:Highlight()
                     end
+                end
+                local existingDestroy = content.Destroy
+                if frame or existingDestroy or typeof(content.ElementFrame) == "Instance" then
                     local destroyed = false
                     function content:Destroy()
                         if destroyed then return end
@@ -34688,7 +35331,13 @@ return {
                         end
                         tbl:UpdateAllElementShapes(tbl)
                     
-                        frame:Destroy()
+                        if frame then
+                            frame:Destroy()
+                        elseif existingDestroy then
+                            existingDestroy(self)
+                        else
+                            self.ElementFrame:Destroy()
+                        end
                     end
                 end
                 
@@ -34696,7 +35345,7 @@ return {
                 
                 Window.AllElements[config.GlobalIndex] = content
                 tbl.Elements[config.Index] =  content
-                if Tab then table.insert(Tab.Elements, content) end
+                if Tab and Tab ~= tbl then table.insert(Tab.Elements, content) end
                 
                 if Window.NewElements then
                     tbl:UpdateAllElementShapes(tbl)
@@ -34709,7 +35358,11 @@ return {
             end
         end
         function tbl:UpdateAllElementShapes(bbb)
-            for i, element in next, bbb.Elements do
+            local siblings = {}
+            for _, element in ipairs(bbb.Elements) do
+                if element.ParentTable == bbb then table.insert(siblings, element) end
+            end
+            for i, element in ipairs(siblings) do
                 local frame
                 for key, value in pairs(element) do
                     if typeof(value) == "table" and key:match("Frame$") then
@@ -34723,7 +35376,7 @@ return {
                     frame.Index = i
                     if frame.UpdateShape then
                         
-                        frame.UpdateShape(bbb)
+                        frame.UpdateShape(siblings)
                     end
                 end
             end
@@ -36100,6 +36753,7 @@ end function __DARKLUA_BUNDLE_MODULES.at()
 
 local UserInputService = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
+local GuiService = game:GetService("GuiService")
 
 local CurrentCamera = workspace.CurrentCamera
 
@@ -36971,12 +37625,95 @@ New("Frame", {
         return Button
     end
 
-    
+    local dragPreview = New("Frame", {
+        Name = "DragPreview",
+        Parent = Window.UIElements.Main.Parent,
+        Visible = false,
+        ThemeTag = {BackgroundColor3 = "Background"},
+        BackgroundTransparency = 0.30,
+        BorderSizePixel = 0,
+        ZIndex = Window.UIElements.Main.ZIndex + 1,
+    }, {
+        New("UICorner", {CornerRadius = UDim.new(0, Window.UICorner)}),
+        New("UIStroke", {
+            ThemeTag = {Color = "Outline"},
+            Thickness = 1,
+            Transparency = 0.25,
+        }),
+    })
+
+    New("Frame", {
+        Name = "PreviewPattern",
+        Parent = dragPreview,
+        Size = UDim2.fromScale(1, 1),
+        BorderSizePixel = 0,
+        ThemeTag = {BackgroundColor3 = "Outline"},
+    }, {
+        New("UICorner", {CornerRadius = UDim.new(0, Window.UICorner)}),
+        New("UIGradient", {
+            Rotation = 35,
+            Transparency = NumberSequence.new({
+                NumberSequenceKeypoint.new(0, 0.95),
+                NumberSequenceKeypoint.new(0.27, 0.95),
+                NumberSequenceKeypoint.new(0.32, 0.78),
+                NumberSequenceKeypoint.new(0.46, 0.88),
+                NumberSequenceKeypoint.new(0.49, 0.97),
+                NumberSequenceKeypoint.new(0.56, 0.97),
+                NumberSequenceKeypoint.new(0.60, 0.86),
+                NumberSequenceKeypoint.new(0.72, 0.95),
+                NumberSequenceKeypoint.new(1, 0.95),
+            }),
+        }),
+    })
+
+    Creator.AddDragPreviewEdges(dragPreview)
+
+    local function constrainWindowDrag(delta, handle, scale)
+        local screen = Config.WindUI.ScreenGui
+        local insetStart, insetEnd = GuiService:GetGuiInset()
+        local safeStart = screen.AbsolutePosition + insetStart
+        local safeEnd = screen.AbsolutePosition + screen.AbsoluteSize - insetEnd
+
+        local screenSize = safeEnd - safeStart
+        if screenSize.X <= 0 or screenSize.Y <= 0 then return Vector2.zero end
+
+        local main = Window.UIElements.Main
+        local bodyStart = main.AbsolutePosition
+        local bodySize = main.AbsoluteSize
+        local bodyWidth = math.min(98, bodySize.X, screenSize.X)
+        local bodyHeight = math.min(44 * scale, bodySize.Y, screenSize.Y)
+        local x = math.clamp(
+            delta.X,
+            safeStart.X - bodyStart.X - bodySize.X + bodyWidth,
+            safeEnd.X - bodyStart.X - bodyWidth
+        )
+
+        
+        local grip = Topbar
+        if handle == BottomDragFrame.Frame then
+            local bottomLeft = BottomDragFrame.AbsolutePosition.X + x
+            local bottomRight = bottomLeft + BottomDragFrame.AbsoluteSize.X
+            local visibleWidth = math.min(bottomRight, safeEnd.X) - math.max(bottomLeft, safeStart.X)
+            if visibleWidth >= 36 * scale then
+                grip = BottomDragFrame
+            end
+        end
+
+        local gripHeight = math.min(28 * scale, grip.AbsoluteSize.Y, screenSize.Y)
+        local bodyMin = safeStart.Y - bodyStart.Y - bodySize.Y + bodyHeight
+        local bodyMax = safeEnd.Y - bodyStart.Y - bodyHeight
+        local minY = math.max(bodyMin, safeStart.Y - grip.AbsolutePosition.Y - grip.AbsoluteSize.Y + gripHeight)
+        local maxY = math.min(bodyMax, safeEnd.Y - grip.AbsolutePosition.Y - gripHeight)
+        if minY > maxY then
+            minY, maxY = bodyMin, bodyMax
+        end
+        return Vector2.new(x, math.clamp(delta.Y, minY, maxY))
+    end
 
     local WindowDragModule = Creator.Drag(
-        Window.UIElements.Main, 
-        {Window.UIElements.Main.Main.Topbar, BottomDragFrame.Frame}, 
-        function(dragging, frame) 
+        Window.UIElements.Main,
+        {Window.UIElements.Main.Main.Topbar, BottomDragFrame.Frame},
+        function(dragging, frame)
             if not Window.Closed then
                 if dragging and frame == BottomDragFrame.Frame then
                     Tween(BottomDragFrame, .1, {ImageTransparency = .35}):Play()
@@ -36984,11 +37721,19 @@ New("Frame", {
                     Tween(BottomDragFrame, .2, {ImageTransparency = .8}):Play()
                 end
                 Window.Position = Window.UIElements.Main.Position
-                Window.Dragging = dragging
             end
-        end
+            Window.Dragging = dragging
+        end,
+        dragPreview,
+        Config.WindUI.ScreenGui.UIScale,
+        constrainWindowDrag
     )
-    
+    local recoverWindow = Creator.KeepInViewport(Window.UIElements.Main, Config.WindUI.ScreenGui, function()
+        return not Window.IsFullscreen and not Window.Destroyed
+    end, function(position)
+        Window.Position = position
+    end)
+
     if not IsVideoBG and Window.Background and typeof(Window.Background) == "table" then
         
         local BackgroundGradient = New("UIGradient")
@@ -37123,7 +37868,13 @@ New("Frame", {
         
         Tween(Window.UIElements.Main, 0.45, {Size = isFullscreen and CurrentSize or UDim2.new(1,-20,1,-20-52)}, Enum.EasingStyle.Quint, Enum.EasingDirection.Out):Play()
     
-        Tween(Window.UIElements.Main, 0.45, {Position = isFullscreen and CurrentPos or UDim2.new(0.5,0,0.5,52/2)}, Enum.EasingStyle.Quint, Enum.EasingDirection.Out):Play()
+        local positionTween = Tween(Window.UIElements.Main, 0.45, {Position = isFullscreen and CurrentPos or UDim2.new(0.5,0,0.5,52/2)}, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
+        if isFullscreen then
+            positionTween.Completed:Once(function(state)
+                if state == Enum.PlaybackState.Completed then recoverWindow() end
+            end)
+        end
+        positionTween:Play()
         
         
         
@@ -38358,6 +39109,7 @@ WindUI.NotificationGui = New("ScreenGui", {
 })
 WindUI.DropdownGui = New("ScreenGui", {
     Name = "H4xUI/Dropdowns",
+    DisplayOrder = WindUI.ScreenGui.DisplayOrder + 1,
     Parent = GUIParent,
     IgnoreGuiInset = true,
 })
